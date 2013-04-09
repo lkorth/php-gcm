@@ -21,10 +21,13 @@ class Message {
      * @param array $data
      * @param string $restrictedPackageName
      */
-    public function __construct($collapseKey = '', $delayWhileIdle = false, $dryRun = false, $timeToLive = -1,
+    public function __construct($collapseKey = '', $delayWhileIdle = '', $dryRun = false, $timeToLive = -1,
                                 array $data = array(), $restrictedPackageName = '') {
         $this->collapseKey = $collapseKey;
-        $this->delayWhileIdle = $delayWhileIdle;
+
+        if($delayWhileIdle != '')
+            $this->delayWhileIdle = $delayWhileIdle;
+
         $this->dryRun = $dryRun;
         $this->timeToLive = $timeToLive;
         $this->data = $data;
@@ -64,7 +67,9 @@ class Message {
      * @return bool
      */
     public function getDelayWhileIdle() {
-        return $this->delayWhileIdle;
+        if(isset($this->delayWhileIdle))
+            return $this->delayWhileIdle;
+        return null;
     }
 
     /**
