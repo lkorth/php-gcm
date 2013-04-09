@@ -17,7 +17,7 @@ class Message {
      * @param int $timeToLive
      * @param array $data
      */
-    public function __construct($collapseKey = '', $delayWhileIdle = false, $timeToLive = -1, $data = array()) {
+    public function __construct($collapseKey = '', $delayWhileIdle = false, $timeToLive = -1, array $data = array()) {
         $this->collapseKey = $collapseKey;
         $this->delayWhileIdle = $delayWhileIdle;
         $this->timeToLive = $timeToLive;
@@ -93,7 +93,7 @@ class Message {
      *
      * @param array $data
      */
-    public function data($data) {
+    public function data(array $data) {
         $this->data = $data;
     }
 
