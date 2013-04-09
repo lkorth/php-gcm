@@ -6,22 +6,29 @@ class Message {
 
     private $collapseKey;
     private $delayWhileIdle;
+    private $dryRun;
     private $timeToLive;
     private $data;
+    private $restrictedPackageName;
 
     /**
-     * Message constructor
+     * Message Constructor
      *
      * @param string $collapseKey
      * @param bool $delayWhileIdle
+     * @param bool $dryRun
      * @param int $timeToLive
      * @param array $data
+     * @param string $restrictedPackageName
      */
-    public function __construct($collapseKey = '', $delayWhileIdle = false, $timeToLive = -1, array $data = array()) {
+    public function __construct($collapseKey = '', $delayWhileIdle = false, $dryRun = false, $timeToLive = -1,
+                                array $data = array(), $restrictedPackageName = '') {
         $this->collapseKey = $collapseKey;
         $this->delayWhileIdle = $delayWhileIdle;
+        $this->dryRun = $dryRun;
         $this->timeToLive = $timeToLive;
         $this->data = $data;
+        $this->restrictedPackageName = $restrictedPackageName;
     }
 
     /**
@@ -58,6 +65,24 @@ class Message {
      */
     public function getDelayWhileIdle() {
         return $this->delayWhileIdle;
+    }
+
+    /**
+     * Sets the dryRun property (default value is {false}).
+     *
+     * @param bool $dryRun
+     */
+    public function dryRun($dryRun) {
+        $this->dryRun = $dryRun;
+    }
+
+    /**
+     * Gets the dryRun property
+     *
+     * @return bool
+     */
+    public function getDryRun() {
+        return $this->dryRun;
     }
 
     /**
@@ -104,5 +129,23 @@ class Message {
      */
     public function getData() {
         return $this->data;
+    }
+
+    /**
+     * Sets the restrictedPackageName property.
+     *
+     * @param string $restrictedPackageName
+     */
+    public function restrictedPackageName($restrictedPackageName) {
+        $this->restrictedPackageName = $restrictedPackageName;
+    }
+
+    /**
+     * Gets the restrictedPackageName property
+     *
+     * @return string
+     */
+    public function getRestrictedPackageName() {
+        return $this->restrictedPackageName;
     }
 }
