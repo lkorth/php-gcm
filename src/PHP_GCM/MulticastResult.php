@@ -22,14 +22,23 @@ class MulticastResult {
      * @param array $results
      * @param array $retryMulticastIds
      */
-    public function __construct($success, $failure, $canonicalIds, $multicastId, array $results,
-                                array $retryMulticastIds = array()) {
+    public function __construct($success, $failure, $canonicalIds, $multicastId, array $retryMulticastIds = array()) {
         $this->success = $success;
         $this->failure = $failure;
         $this->canonicalIds = $canonicalIds;
         $this->multicastId = $multicastId;
-        $this->results = $results;
         $this->retryMulticastIds = $retryMulticastIds;
+
+        $this->results = array();
+    }
+
+    /**
+     * Add a result to the result property
+     *
+     * @param Result $result
+     */
+    public function addResult(Result $result) {
+        $this->results[] = $result;
     }
 
     /**
