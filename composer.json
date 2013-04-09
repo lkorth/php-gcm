@@ -15,6 +15,6 @@
 		"source": "https://github.com/lkorth/php-gcm"
 	},
     "autoload": {
-        "psr-0": { "PHP-GCM": "src/" }
+        "psr-0": { "PHP_GCM": "src/" }
     }
 }
