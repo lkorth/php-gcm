@@ -212,7 +212,7 @@ class Sender {
             }
         }
 
-        $multicastId = multicastIds[0];
+        $multicastId = $multicastIds[0];
         $builder = new MulticastResult($success, $failure, $canonicalIds, $multicastId, $multicastIds);
 
         // add results, in the same order as the input
