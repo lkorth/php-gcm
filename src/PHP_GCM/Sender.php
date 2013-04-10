@@ -150,4 +150,186 @@ class Sender {
             throw new \Exception('Received invalid response from GCM: ' . $lines[0]);
         }
     }
+
+    /**
+     * Sends a message to many devices, retrying in case of unavailability.
+     *
+     * <p>
+     * <strong>Note: </strong> this method uses exponential back-off to retry in
+     * case of service unavailability and hence could block the calling thread
+     * for many seconds.
+     *
+     * @param Message message to be sent.
+     * @param array $registrationIds registration id of the devices that will receive
+     *        the message.
+     * @param int $retries number of retries in case of service unavailability errors.
+     *
+     * @return MulticastResult combined result of all requests made.
+     *
+     * @throws \InvalidArgumentException if registrationIds is {@literal null} or
+     *         empty.
+     * @throws InvalidRequestException if GCM didn't returned a 200 or 503 status.
+     * @throws \Exception if message could not be sent.
+     */
+    public function sendMulti(Message $message, array $registrationIds, $retries) {
+        $attempt = 0;
+        $multicastResult = null;
+        $backoff = Sender::$BACKOFF_INITIAL_DELAY;
+
+        // results by registration id, it will be updated after each attempt
+        // to send the messages
+        $results = array();
+        $unsentRegIds = array();
+
+        $multicastIds = array();
+
+        do {
+            $attempt++;
+
+            $multicastResult = sendNoRetryMulti($message, $unsentRegIds);
+            $multicastId = $multicastResult->getMulticastId();
+            $multicastIds[] = $multicastId;
+            $unsentRegIds = $this->updateStatus($unsentRegIds, $results, $multicastResult);
+
+            $tryAgain = count($unsentRegIds) > 0 && $attempt <= $retries;
+            if($tryAgain) {
+                $sleepTime = $backoff / 2 + rand(0, $backoff);
+                sleep($sleepTime / 1000);
+                if(2 * $backoff < Sender::$MAX_BACKOFF_DELAY)
+                    $backoff *= 2;
+            }
+        } while ($tryAgain);
+
+        $success = $failure = $canonicalIds = 0;
+        foreach($results as $result) {
+            if(!is_null($result->getMessageId())) {
+                $success++;
+
+                if(!is_null($result->getCanonicalRegistrationId()))
+                    $canonicalIds++;
+            } else {
+                $failure++;
+            }
+        }
+
+        $multicastId = multicastIds[0];
+        $builder = new MulticastResult($success, $failure, $canonicalIds, $multicastId, $multicastIds);
+
+        // add results, in the same order as the input
+        foreach($registrationIds as $registrationId) {
+            $builder->addResult($results[$registrationId]);
+        }
+
+        return $builder;
+    }
+
+    /**
+     * Sends a message without retrying in case of service unavailability. See
+     * sendMulti() for more info.
+     *
+     * @return {@literal true} if the message was sent successfully,
+     *         {@literal false} if it failed but could be retried.
+     *
+     * @throws \InvalidArgumentException if registrationIds is {@literal null} or
+     *         empty.
+     * @throws InvalidRequestException if GCM didn't returned a 200 status.
+     * @throws \Exception if message could not be sent or received.
+     */
+    public function sendNoRetryMulti(Message $message, array $registrationIds) {
+        if(is_null($registrationIds) || count($registrationIds) == 0)
+            throw new \InvalidArgumentException('registrationIds cannot be empty');
+
+        $request = array();
+
+        if($message->getTimeToLive() != -1)
+            $request[Constants::$PARAM_TIME_TO_LIVE] = $message->getTimeToLive();
+
+        if($message->getCollapseKey() != '')
+            $request[Constants::$PARAM_COLLAPSE_KEY] = $message->getCollapseKey();
+
+        if($message->getDelayWhileIdle() != '')
+            $request[Constants::$PARAM_DELAY_WHILE_IDLE] = $message->getDelayWhileIdle();
+
+        $request[Constants::$JSON_REGISTRATION_IDS] = $registrationIds;
+
+        if(!is_null($message->getData()) && count($message->getData()) > 0)
+            $request[Constants::$JSON_PAYLOAD] = $message->getData();
+
+        $request = json_encode($request);
+
+        $headers = array('Content-Type: application/json',
+            'Authorization: key=' . $this->key);
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, Constants::$GCM_SEND_ENDPOINT);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
+        $response = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if($status != 200)
+            throw new InvalidRequestException($status, $response);
+
+        $response = json_decode($response, true);
+        $success = $response[Constants::$JSON_SUCCESS];
+        $failure = $response[Constants::$JSON_FAILURE];
+        $canonicalIds = $response[Constants::$JSON_CANONICAL_IDS];
+        $multicastId = $response[Constants::$JSON_MULTICAST_ID];
+
+        $multicastResult = new MulticastResult($success, $failure, $canonicalIds, $multicastId);
+
+        if(isset($response[Constants::$JSON_RESULTS])){
+            $individualResults = $response[Constants::$JSON_RESULTS];
+
+            foreach($individualResults as $singleResult) {
+                $messageId = $singleResult[Constants::$JSON_MESSAGE_ID];
+                $canonicalRegId = $singleResult[Constants::$TOKEN_CANONICAL_REG_ID];
+                $error = $singleResult[Constants::$JSON_ERROR];
+
+                $result = new Result();
+                $result->setMessageId($messageId);
+                $result->setCanonicalRegistrationId($canonicalRegId);
+                $result->setErrorCode($error);
+
+                $multicastResult->addResult($result);
+            }
+        }
+
+        return $multicastResult;
+    }
+
+    /**
+     * Updates the status of the messages sent to devices and the list of devices
+     * that should be retried.
+     *
+     * @param array unsentRegIds list of devices that are still pending an update.
+     * @param array allResults map of status that will be updated.
+     * @param MulticastResult multicastResult result of the last multicast sent.
+     *
+     * @return array updated version of devices that should be retried.
+     */
+    private function updateStatus($unsentRegIds, $allResults, MulticastResult $multicastResult) {
+        $results = $multicastResult->getResults();
+        if(count($results) != count($unsentRegIds)) {
+            // should never happen, unless there is a flaw in the algorithm
+            throw new \RuntimeException('Internal error: sizes do not match. currentResults: ' . $results .
+                '; unsentRegIds: ' + $unsentRegIds);
+        }
+
+        $newUnsentRegIds = array();
+        for ($i = 0; $i < count($unsentRegIds); $i++) {
+            $regId = $unsentRegIds[$i];
+            $result = $results[$i];
+            $allResults[$regId] = $result;
+            $error = $result->getErrorCode();
+
+            if(!is_null($error) && $error == Constants::$ERROR_UNAVAILABLE)
+                $newUnsentRegIds[] = $regId;
+        }
+
+        return $newUnsentRegIds;
+    }
 }
