@@ -235,7 +235,7 @@ class Sender {
      */
     public function sendNoRetryMulti(Message $message, array $registrationIds) {
         if(is_null($registrationIds) || count($registrationIds) == 0)
-            throw new \InvalidArgumentException('registrationIds cannot be empty');
+            throw new \InvalidArgumentException('registrationIds cannot be null or empty');
 
         $request = array();
 
