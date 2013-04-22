@@ -4,8 +4,6 @@ namespace PHP_GCM;
 
 class Sender {
 
-    private static $UTF8 = 'UTF-8';
-
     /**
      * Initial delay before first retry, without jitter.
      */
