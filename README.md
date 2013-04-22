@@ -30,13 +30,13 @@ $ composer.phar install
 Usage
 -------
 ```php
-$sender = new Sender($key);
-$message = new Message($collapseKey, $data);
+$sender = new Sender($gcmApiKey);
+$message = new Message($collapseKey, $payloadData);
 
 try {
-    $result = $sender->send($message, $device, 5);
+    $result = $sender->send($message, $deviceRegistrationId, $numberOfRetryAttempts);
 } catch (\InvalidArgumentException $e) {
-    // $device (registrationId) was null
+    // $deviceRegistrationId was null
 } catch (PHP_GCM\InvalidRequestException $e) {
     // server returned HTTP code other than 200 or 503
 } catch (\Exception $e) {
