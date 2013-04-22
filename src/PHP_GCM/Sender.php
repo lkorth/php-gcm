@@ -40,7 +40,7 @@ class Sender {
      * @return Result result of the request (see its javadoc for more details)
      *
      * @throws \InvalidArgumentException if registrationId is {@literal null}.
-     * @throws InvalidRequestException if GCM didn't returned a 200 or 503 status.
+     * @throws InvalidRequestException if GCM didn't return a 200 or 503 status.
      * @throws \Exception if message could not be sent.
      */
     public function send(Message $message, $registrationId, $retries) {
