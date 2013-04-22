@@ -3,7 +3,7 @@
 namespace PHP_GCM;
 
 /**
- * Constants used on GCM service communication.
+ * Constants used in GCM service communication.
  */
 final class Constants {
 
