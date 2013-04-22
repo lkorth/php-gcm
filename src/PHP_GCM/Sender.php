@@ -177,7 +177,7 @@ class Sender {
         // results by registration id, it will be updated after each attempt
         // to send the messages
         $results = array();
-        $unsentRegIds = array();
+        $unsentRegIds = $registrationIds;
 
         $multicastIds = array();
 
