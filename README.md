@@ -32,5 +32,14 @@ Usage
 ```php
 $sender = new Sender($key);
 $message = new Message($collapseKey, $data);
-$result = $sender->send($message, $devices, 5);
+
+try {
+    $result = $sender->send($message, $device, 5);
+} catch (\InvalidArgumentException $e) {
+    // $device (registrationId) was null
+} catch (PHP_GCM\InvalidRequestException $e) {
+    // server returned HTTP code other than 200 or 503
+} catch (\Exception $e) {
+    // message could not be sent
+}
 ```
