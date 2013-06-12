@@ -184,7 +184,7 @@ class Sender {
         do {
             $attempt++;
 
-            $multicastResult = sendNoRetryMulti($message, $unsentRegIds);
+            $multicastResult = $this->sendNoRetryMulti($message, $unsentRegIds);
             $multicastId = $multicastResult->getMulticastId();
             $multicastIds[] = $multicastId;
             $unsentRegIds = $this->updateStatus($unsentRegIds, $results, $multicastResult);
