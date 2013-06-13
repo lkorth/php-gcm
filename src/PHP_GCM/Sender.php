@@ -309,7 +309,7 @@ class Sender {
      *
      * @return array updated version of devices that should be retried.
      */
-    private function updateStatus($unsentRegIds, $allResults, MulticastResult $multicastResult) {
+    private function updateStatus($unsentRegIds, &$allResults, MulticastResult $multicastResult) {
         $results = $multicastResult->getResults();
         if(count($results) != count($unsentRegIds)) {
             // should never happen, unless there is a flaw in the algorithm
