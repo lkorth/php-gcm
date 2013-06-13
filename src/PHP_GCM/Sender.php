@@ -283,9 +283,9 @@ class Sender {
             $individualResults = $response[Constants::$JSON_RESULTS];
 
             foreach($individualResults as $singleResult) {
-                $messageId = $singleResult[Constants::$JSON_MESSAGE_ID];
-                $canonicalRegId = $singleResult[Constants::$TOKEN_CANONICAL_REG_ID];
-                $error = $singleResult[Constants::$JSON_ERROR];
+                $messageId = isset($singleResult[Constants::$JSON_MESSAGE_ID]) ? $singleResult[Constants::$JSON_MESSAGE_ID] : null;
+                $canonicalRegId = isset($singleResult[Constants::$TOKEN_CANONICAL_REG_ID]) ? $singleResult[Constants::$TOKEN_CANONICAL_REG_ID] : null;
+                $error = isset($singleResult[Constants::$JSON_ERROR]) ? $singleResult[Constants::$JSON_ERROR] : null;
 
                 $result = new Result();
                 $result->setMessageId($messageId);
