@@ -81,7 +81,7 @@ class Sender {
      * @throws \InvalidArgumentException if registrationId is {@literal null}.
      */
     public function sendNoRetry(Message $message, $registrationId) {
-        if(is_null($registrationId))
+        if(empty($registrationId))
             throw new \InvalidArgumentException('registrationId was null');
 
         $body = Constants::$PARAM_REGISTRATION_ID . '=' . $registrationId;
