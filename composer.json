@@ -1,7 +1,7 @@
 {
     "name": "php-gcm/php-gcm",
     "description": "A PHP library for sending GCM messages",
-    "keywords": ["library", "gcm", "php"],
+    "keywords": ["library", "gcm", "php", "android"],
     "homepage": "https://github.com/lkorth/php-gcm",
     "license": "Apache-2.0",
     "authors": [
