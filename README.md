@@ -43,3 +43,9 @@ try {
     // message could not be sent
 }
 ```
+
+License
+--------
+php-gcm is licensed under the Apache 2.0 License
+
+php-gcm is based heavily on Google's Java [GCM server](http://developer.android.com/reference/com/google/android/gcm/server/package-summary.html) code
