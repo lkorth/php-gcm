@@ -16,5 +16,9 @@
 	},
     "autoload": {
         "psr-0": { "PHP_GCM": "src/" }
+    },
+    "require": {
+        "php": ">=5.3.29",
+        "ext-curl": "*"
     }
 }
