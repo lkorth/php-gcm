@@ -329,7 +329,6 @@ class Sender {
         if(count($results) != count($unsentRegIds)) {
             // should never happen, unless there is a flaw in the algorithm
             throw new \RuntimeException('Internal error: sizes do not match. currentResults: ' . $results .
-                '; unsentRegIds: ' + $unsentRegIds);
         }
 
         $newUnsentRegIds = array();
