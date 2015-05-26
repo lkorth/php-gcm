@@ -34,7 +34,6 @@ class MulticastResult {
      * @param int $failure
      * @param int $canonicalIds
      * @param string $multicastId
-     * @param array $results
      * @param array $retryMulticastIds
      */
     public function __construct($success, $failure, $canonicalIds, $multicastId, array $retryMulticastIds = array()) {
