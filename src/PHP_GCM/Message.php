@@ -36,7 +36,7 @@ class Message {
      * @param array $data
      * @param string $restrictedPackageName
      */
-    public function __construct($collapseKey = '', array $data = array(), $timeToLive = -1, $delayWhileIdle = '',
+    public function __construct($collapseKey = '', array $data = array(), $timeToLive = -1, $delayWhileIdle = null,
                                 $restrictedPackageName = '', $dryRun = false) {
         $this->collapseKey = $collapseKey;
 
