@@ -15,7 +15,7 @@ Composer is the easiest way to manage dependencies in your project. Create a fil
 ```json
 {
     "require": {
-        "php-gcm/php-gcm": "1.1.0"
+        "php-gcm/php-gcm": "^1.1.0"
     }
 }
 ```
