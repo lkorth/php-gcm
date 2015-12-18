@@ -20,5 +20,8 @@
   "require": {
     "php": ">=5.3.10",
     "ext-curl": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "5.1"
   }
 }

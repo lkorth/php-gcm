@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit colors="true">
+  <testsuites>
+    <testsuite name="php-gcm tests">
+      <directory>./tests/</directory>
+    </testsuite>
+  </testsuites>
+</phpunit>
