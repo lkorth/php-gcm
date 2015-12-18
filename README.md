@@ -2,11 +2,18 @@
 
 Why
 --------
-[Google Cloud Messaging for Android](http://developer.android.com/google/gcm/index.html) is great, but Google has
-only released a Java server side implementation. To use it with PHP we have to resort to writing custom functions or
-classes and dealing with HTTP, curl and headers. No More! This library is a loose port of Google's
-[com.google.android.gcm.server](http://developer.android.com/reference/com/google/android/gcm/server/package-summary.html)
-Java library and makes GCM very easy and powerful in PHP.
+[Google Cloud Messaging for Android](http://developer.android.com/google/gcm/index.html) is very powerful,
+but there are a lot of details to handle. This library takes care of the details and makes GCM very easy
+to use with PHP.
+
+Support
+-------
+php-gcm supports the [HTTP server protocol](https://developers.google.com/cloud-messaging/server) for GCM.
+There is not currently support for XMPP, but implementations and pull requests for XMPP are welcome.
+See [#3] for more details.
+
+php-gcm supports PHP versions >= 5.3.10. php-gcm may work on older versions of PHP, but has not been
+tested on them.
 
 Install
 ---------
@@ -46,6 +53,4 @@ try {
 
 License
 --------
-php-gcm is licensed under the Apache 2.0 License
-
-php-gcm is based heavily on Google's Java [GCM server](http://developer.android.com/reference/com/google/android/gcm/server/package-summary.html) code
+php-gcm is licensed under the Apache 2.0 License. See the [LICENSE] file for more details.
