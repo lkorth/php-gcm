@@ -4,153 +4,153 @@ namespace PHP_GCM;
 
 class Message {
 
-    private $collapseKey;
-    private $delayWhileIdle;
-    private $dryRun;
-    private $timeToLive;
-    private $data;
-    private $restrictedPackageName;
+  private $collapseKey;
+  private $delayWhileIdle;
+  private $dryRun;
+  private $timeToLive;
+  private $data;
+  private $restrictedPackageName;
 
-    /**
-     * Message Constructor
-     *
-     * @param string $collapseKey
-     * @param bool $delayWhileIdle
-     * @param bool $dryRun
-     * @param int $timeToLive
-     * @param array $data
-     * @param string $restrictedPackageName
-     */
-    public function __construct($collapseKey = '', array $data = array(), $timeToLive = -1, $delayWhileIdle = '',
-                                $restrictedPackageName = '', $dryRun = false) {
-        $this->collapseKey = $collapseKey;
+  /**
+   * Message Constructor
+   *
+   * @param string $collapseKey
+   * @param bool $delayWhileIdle
+   * @param bool $dryRun
+   * @param int $timeToLive
+   * @param array $data
+   * @param string $restrictedPackageName
+   */
+  public function __construct($collapseKey = '', array $data = array(), $timeToLive = -1, $delayWhileIdle = '',
+    $restrictedPackageName = '', $dryRun = false) {
+      $this->collapseKey = $collapseKey;
 
-        if($delayWhileIdle != '')
-            $this->delayWhileIdle = $delayWhileIdle;
-
-        $this->dryRun = $dryRun;
-        $this->timeToLive = $timeToLive;
-        $this->data = $data;
-        $this->restrictedPackageName = $restrictedPackageName;
-    }
-
-    /**
-     * Sets the collapseKey property.
-     *
-     * @param string $collapseKey
-     */
-    public function collapseKey($collapseKey) {
-        $this->collapseKey = $collapseKey;
-    }
-
-    /**
-     * Gets the collapseKey property
-     *
-     * @return string
-     */
-    public function getCollapseKey() {
-        return $this->collapseKey;
-    }
-
-    /**
-     * Sets the delayWhileIdle property (default value is {false}).
-     *
-     * @param bool $delayWhileIdle
-     */
-    public function delayWhileIdle($delayWhileIdle) {
+      if($delayWhileIdle != '')
         $this->delayWhileIdle = $delayWhileIdle;
+
+      $this->dryRun = $dryRun;
+      $this->timeToLive = $timeToLive;
+      $this->data = $data;
+      $this->restrictedPackageName = $restrictedPackageName;
     }
 
-    /**
-     * Gets the delayWhileIdle property
-     *
-     * @return bool
-     */
-    public function getDelayWhileIdle() {
-        if(isset($this->delayWhileIdle))
-            return $this->delayWhileIdle;
-        return null;
-    }
+  /**
+   * Sets the collapseKey property.
+   *
+   * @param string $collapseKey
+   */
+  public function collapseKey($collapseKey) {
+    $this->collapseKey = $collapseKey;
+  }
 
-    /**
-     * Sets the dryRun property (default value is {false}).
-     *
-     * @param bool $dryRun
-     */
-    public function dryRun($dryRun) {
-        $this->dryRun = $dryRun;
-    }
+  /**
+   * Gets the collapseKey property
+   *
+   * @return string
+   */
+  public function getCollapseKey() {
+    return $this->collapseKey;
+  }
 
-    /**
-     * Gets the dryRun property
-     *
-     * @return bool
-     */
-    public function getDryRun() {
-        return $this->dryRun;
-    }
+  /**
+   * Sets the delayWhileIdle property (default value is {false}).
+   *
+   * @param bool $delayWhileIdle
+   */
+  public function delayWhileIdle($delayWhileIdle) {
+    $this->delayWhileIdle = $delayWhileIdle;
+  }
 
-    /**
-     * Sets the time to live, in seconds.
-     *
-     * @param int $timeToLive
-     */
-    public function timeToLive($timeToLive) {
-        $this->timeToLive = $timeToLive;
-    }
+  /**
+   * Gets the delayWhileIdle property
+   *
+   * @return bool
+   */
+  public function getDelayWhileIdle() {
+    if(isset($this->delayWhileIdle))
+      return $this->delayWhileIdle;
+    return null;
+  }
 
-    /**
-     * Gets the timeToLive property
-     *
-     * @return int
-     */
-    public function getTimeToLive() {
-        return $this->timeToLive;
-    }
+  /**
+   * Sets the dryRun property (default value is {false}).
+   *
+   * @param bool $dryRun
+   */
+  public function dryRun($dryRun) {
+    $this->dryRun = $dryRun;
+  }
 
-    /**
-     * Adds a key/value pair to the payload data.
-     *
-     * @param string $key
-     * @param string $value
-     */
-    public function addData($key, $value) {
-        $this->data[$key] = $value;
-    }
+  /**
+   * Gets the dryRun property
+   *
+   * @return bool
+   */
+  public function getDryRun() {
+    return $this->dryRun;
+  }
 
-    /**
-     * Sets the data property
-     *
-     * @param array $data
-     */
-    public function data(array $data) {
-        $this->data = $data;
-    }
+  /**
+   * Sets the time to live, in seconds.
+   *
+   * @param int $timeToLive
+   */
+  public function timeToLive($timeToLive) {
+    $this->timeToLive = $timeToLive;
+  }
 
-    /**
-     * Gets the data property
-     *
-     * @return array
-     */
-    public function getData() {
-        return $this->data;
-    }
+  /**
+   * Gets the timeToLive property
+   *
+   * @return int
+   */
+  public function getTimeToLive() {
+    return $this->timeToLive;
+  }
 
-    /**
-     * Sets the restrictedPackageName property.
-     *
-     * @param string $restrictedPackageName
-     */
-    public function restrictedPackageName($restrictedPackageName) {
-        $this->restrictedPackageName = $restrictedPackageName;
-    }
+  /**
+   * Adds a key/value pair to the payload data.
+   *
+   * @param string $key
+   * @param string $value
+   */
+  public function addData($key, $value) {
+    $this->data[$key] = $value;
+  }
 
-    /**
-     * Gets the restrictedPackageName property
-     *
-     * @return string
-     */
-    public function getRestrictedPackageName() {
-        return $this->restrictedPackageName;
-    }
+  /**
+   * Sets the data property
+   *
+   * @param array $data
+   */
+  public function data(array $data) {
+    $this->data = $data;
+  }
+
+  /**
+   * Gets the data property
+   *
+   * @return array
+   */
+  public function getData() {
+    return $this->data;
+  }
+
+  /**
+   * Sets the restrictedPackageName property.
+   *
+   * @param string $restrictedPackageName
+   */
+  public function restrictedPackageName($restrictedPackageName) {
+    $this->restrictedPackageName = $restrictedPackageName;
+  }
+
+  /**
+   * Gets the restrictedPackageName property
+   *
+   * @return string
+   */
+  public function getRestrictedPackageName() {
+    return $this->restrictedPackageName;
+  }
 }

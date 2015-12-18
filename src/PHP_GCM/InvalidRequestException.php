@@ -9,35 +9,35 @@ namespace PHP_GCM;
  */
 class InvalidRequestException extends \Exception {
 
-    private $status;
-    private $description;
+  private $status;
+  private $description;
 
-    public function __construct($status, $description = '') {
-        $this->status = $status;
-        $this->description = $description;
+  public function __construct($status, $description = '') {
+    $this->status = $status;
+    $this->description = $description;
 
-        parent::__construct($description, $status, null);
-    }
+    parent::__construct($description, $status, null);
+  }
 
-    public function __toString() {
-        return __CLASS__ . ': HTTP Status Code: ' . $this->status . ' (' . $this->description . ')';
-    }
+  public function __toString() {
+    return __CLASS__ . ': HTTP Status Code: ' . $this->status . ' (' . $this->description . ')';
+  }
 
-    /**
-     * Gets the HTTP Status Code.
-     *
-     * @return int
-     */
-    public function getHttpStatusCode() {
-        return $this->status;
-    }
+  /**
+   * Gets the HTTP Status Code.
+   *
+   * @return int
+   */
+  public function getHttpStatusCode() {
+    return $this->status;
+  }
 
-    /**
-     * Gets the error description.
-     *
-     * @return string
-     */
-    public function getDescription() {
-        return $this->description;
-    }
+  /**
+   * Gets the error description.
+   *
+   * @return string
+   */
+  public function getDescription() {
+    return $this->description;
+  }
 }

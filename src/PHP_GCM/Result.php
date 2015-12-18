@@ -30,61 +30,61 @@ namespace PHP_GCM;
  */
 class Result {
 
-    private $messageId;
-    private $canonicalRegistrationId;
-    private $errorCode;
+  private $messageId;
+  private $canonicalRegistrationId;
+  private $errorCode;
 
-    /**
-     * Sets the message id
-     *
-     * @param string $messageId
-     */
-    public function setMessageId($messageId) {
-        $this->messageId = $messageId;
-    }
+  /**
+   * Sets the message id
+   *
+   * @param string $messageId
+   */
+  public function setMessageId($messageId) {
+    $this->messageId = $messageId;
+  }
 
-    /**
-     * Gets the message id, if any
-     *
-     * @return string
-     */
-    public function getMessageId() {
-        return $this->messageId;
-    }
+  /**
+   * Gets the message id, if any
+   *
+   * @return string
+   */
+  public function getMessageId() {
+    return $this->messageId;
+  }
 
-    /**
-     * Sets the canonical registration id
-     *
-     * @param string $canonicalRegistrationId
-     */
-    public function setCanonicalRegistrationId($canonicalRegistrationId) {
-        $this->canonicalRegistrationId = $canonicalRegistrationId;
-    }
+  /**
+   * Sets the canonical registration id
+   *
+   * @param string $canonicalRegistrationId
+   */
+  public function setCanonicalRegistrationId($canonicalRegistrationId) {
+    $this->canonicalRegistrationId = $canonicalRegistrationId;
+  }
 
-    /**
-     * Gets the canonical registration id, if any
-     *
-     * @return string
-     */
-    public function getCanonicalRegistrationId() {
-        return $this->canonicalRegistrationId;
-    }
+  /**
+   * Gets the canonical registration id, if any
+   *
+   * @return string
+   */
+  public function getCanonicalRegistrationId() {
+    return $this->canonicalRegistrationId;
+  }
 
-    /**
-     * Sets the error code
-     *
-     * @param string $errorCode
-     */
-    public function setErrorCode($errorCode) {
-        $this->errorCode = $errorCode;
-    }
+  /**
+   * Sets the error code
+   *
+   * @param string $errorCode
+   */
+  public function setErrorCode($errorCode) {
+    $this->errorCode = $errorCode;
+  }
 
-    /**
-     * Gets the error code, if any
-     *
-     * @return string
-     */
-    public function getErrorCode() {
-        return $this->errorCode;
-    }
+  /**
+   * Gets the error code, if any
+   *
+   * @return string
+   */
+  public function getErrorCode() {
+    return $this->errorCode;
+  }
 }
