@@ -10,7 +10,7 @@ Support
 -------
 php-gcm supports the [HTTP server protocol](https://developers.google.com/cloud-messaging/server) for GCM.
 There is not currently support for XMPP, but implementations and pull requests for XMPP are welcome.
-See [#3] for more details.
+See [#3](https://github.com/lkorth/php-gcm/issues/3) for more details.
 
 php-gcm supports PHP versions >= 5.3.10. php-gcm may work on older versions of PHP, but has not been
 tested on them.
@@ -53,4 +53,4 @@ try {
 
 License
 --------
-php-gcm is licensed under the Apache 2.0 License. See the [LICENSE] file for more details.
+php-gcm is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE) file for more details.
