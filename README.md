@@ -1,5 +1,7 @@
 # php-gcm
 
+[![Build Status](https://travis-ci.org/lkorth/php-gcm.svg?branch=travis)](https://travis-ci.org/lkorth/php-gcm)
+
 Why
 --------
 [Google Cloud Messaging for Android](http://developer.android.com/google/gcm/index.html) is very powerful,
