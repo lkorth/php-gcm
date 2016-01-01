@@ -8,14 +8,14 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $message = new Message();
 
     $this->assertEquals('', $message->getCollapseKey());
-    $this->assertTrue(is_array($message->getData()) && count($message->getData()) == 0);
+    $this->assertTrue(is_array($message->getData()) && empty($message->getData()));
     $this->assertEquals(-1, $message->getTimeToLive());
     $this->assertEquals('', $message->getDelayWhileIdle());
     $this->assertEquals('', $message->getRestrictedPackageName());
     $this->assertFalse($message->getDryRun());
   }
 
-  public function testSetsCollapseKeyCorrectly() {
+  public function testSetsCollapseKey() {
     $message = new Message();
 
     $message->collapseKey('collapse_key');
@@ -23,7 +23,7 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals('collapse_key', $message->getCollapseKey());
   }
 
-  public function testSetsDelayWhileIdleCorrectly() {
+  public function testSetsDelayWhileIdle() {
     $message = new Message();
 
     $message->delayWhileIdle(true);
@@ -31,7 +31,7 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $this->assertTrue($message->getDelayWhileIdle());
   }
 
-  public function testSetsDryRunCorrectly() {
+  public function testSetsDryRun() {
     $message = new Message();
 
     $message->dryRun(true);
@@ -39,7 +39,7 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $this->assertTrue($message->getDryRun());
   }
 
-  public function testSetsTimeToLiveCorrectly() {
+  public function testSetsTimeToLive() {
     $message = new Message();
 
     $message->timeToLive(100);
@@ -47,7 +47,7 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(100, $message->getTimeToLive());
   }
 
-  public function testSetsDataCorrectly() {
+  public function testSetsData() {
     $message = new Message();
 
     $message->data(array('key1' => 'value1', 'key2' => 'value2'));
@@ -55,7 +55,7 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(array('key1' => 'value1', 'key2' => 'value2'), $message->getData());
   }
 
-  public function testSetsRestrictedPackageNameCorrectly() {
+  public function testSetsRestrictedPackageName() {
     $message = new Message();
 
     $message->restrictedPackageName('com.lukekorth.android');
