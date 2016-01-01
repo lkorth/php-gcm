@@ -74,11 +74,12 @@ class Sender {
    * @param Message $message to be sent, including the device's registration id.
    * @param string $registrationId device where the message will be sent.
    *
-   * @return result of the post, or {@literal null} if the GCM service was
-   *         unavailable.
+   * @return Result|null result of the post, or {@literal null} if the GCM service
+   *         was unavailable.
    *
-   * @throws InvalidRequestException if GCM didn't returned a 200 or 503 status.
+   * @throws InvalidRequestException if GCM did not return a 200 or 503 status.
    * @throws \InvalidArgumentException if registrationId is {@literal null}.
+   * @throws \Exception if message could not be sent.
    */
   public function sendNoRetry(Message $message, $registrationId) {
     if(empty($registrationId))
@@ -222,7 +223,7 @@ class Sender {
    * Sends a message without retrying in case of service unavailability. See
    * sendMulti() for more info.
    *
-   * @return {@literal true} if the message was sent successfully,
+   * @return bool {@literal true} if the message was sent successfully,
    *         {@literal false} if it failed but could be retried.
    *
    * @throws \InvalidArgumentException if registrationIds is {@literal null} or
@@ -298,8 +299,8 @@ class Sender {
    * Updates the status of the messages sent to devices and the list of devices
    * that should be retried.
    *
-   * @param array unsentRegIds list of devices that are still pending an update.
-   * @param array allResults map of status that will be updated.
+   * @param array $unsentRegIds list of devices that are still pending an update.
+   * @param array $allResults map of status that will be updated.
    * @param MulticastResult multicastResult result of the last multicast sent.
    *
    * @return array updated version of devices that should be retried.
