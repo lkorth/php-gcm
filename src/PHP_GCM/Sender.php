@@ -86,15 +86,12 @@ class Sender {
       throw new \InvalidArgumentException('registrationId can\'t be empty');
 
     $body = Constants::$PARAM_REGISTRATION_ID . '=' . $registrationId . '&' .
-      Constants::$PARAM_DELAY_WHILE_IDLE . '=' . ($message->getDelayWhileIdle ? '1' : '0');
+      Constants::$PARAM_DELAY_WHILE_IDLE . '=' . ($message->getDelayWhileIdle ? '1' : '0') . '&' .
+      Constants::$PARAM_TIME_TO_LIVE . '=' . $message->getTimeToLive();
 
     $collapseKey = $message->getCollapseKey();
     if($collapseKey != '')
       $body .= '&' . Constants::$PARAM_COLLAPSE_KEY . '=' . $collapseKey;
-
-    $timeToLive = $message->getTimeToLive();
-    if($timeToLive != -1)
-      $body .= '&' . Constants::$PARAM_TIME_TO_LIVE . '=' . $timeToLive;
 
     foreach($message->getData() as $key => $value) {
       $body .= '&' . Constants::$PARAM_PAYLOAD_PREFIX . $key . '=' . urlencode($value);
@@ -237,12 +234,10 @@ class Sender {
 
     $request = array();
 
-    if($message->getTimeToLive() != -1)
-      $request[Constants::$PARAM_TIME_TO_LIVE] = $message->getTimeToLive();
-
     if($message->getCollapseKey() != '')
       $request[Constants::$PARAM_COLLAPSE_KEY] = $message->getCollapseKey();
 
+    $request[Constants::$PARAM_TIME_TO_LIVE] = $message->getTimeToLive();
     $request[Constants::$PARAM_DELAY_WHILE_IDLE] = $message->getDelayWhileIdle();
     $request[Constants::$JSON_REGISTRATION_IDS] = $registrationIds;
 
