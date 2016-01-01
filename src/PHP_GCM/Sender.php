@@ -84,11 +84,8 @@ class Sender {
     if(empty($registrationId))
       throw new \InvalidArgumentException('registrationId can\'t be empty');
 
-    $body = Constants::$PARAM_REGISTRATION_ID . '=' . $registrationId;
-
-    $delayWhileIdle = $message->getDelayWhileIdle();
-    if(!is_null($delayWhileIdle))
-      $body .= '&' . Constants::$PARAM_DELAY_WHILE_IDLE . '=' . ($delayWhileIdle ? '1' : '0');
+    $body = Constants::$PARAM_REGISTRATION_ID . '=' . $registrationId . '&' .
+      Constants::$PARAM_DELAY_WHILE_IDLE . '=' . ($message->getDelayWhileIdle ? '1' : '0');
 
     $collapseKey = $message->getCollapseKey();
     if($collapseKey != '')
@@ -245,9 +242,7 @@ class Sender {
     if($message->getCollapseKey() != '')
       $request[Constants::$PARAM_COLLAPSE_KEY] = $message->getCollapseKey();
 
-    if($message->getDelayWhileIdle() != '')
-      $request[Constants::$PARAM_DELAY_WHILE_IDLE] = $message->getDelayWhileIdle();
-
+    $request[Constants::$PARAM_DELAY_WHILE_IDLE] = $message->getDelayWhileIdle();
     $request[Constants::$JSON_REGISTRATION_IDS] = $registrationIds;
 
     if(!is_null($message->getData()) && count($message->getData()) > 0)

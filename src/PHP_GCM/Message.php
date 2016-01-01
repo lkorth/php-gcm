@@ -15,23 +15,20 @@ class Message {
    * Message Constructor
    *
    * @param string $collapseKey
-   * @param bool $delayWhileIdle
-   * @param bool $dryRun
-   * @param int $timeToLive
    * @param array $data
+   * @param int $timeToLive
+   * @param bool $delayWhileIdle
    * @param string $restrictedPackageName
+   * @param bool $dryRun
    */
-  public function __construct($collapseKey = '', array $data = array(), $timeToLive = -1, $delayWhileIdle = '',
-    $restrictedPackageName = '', $dryRun = false) {
+  public function __construct($collapseKey = '', array $data = array(), $timeToLive = -1,
+    $delayWhileIdle = false, $restrictedPackageName = '', $dryRun = false) {
       $this->collapseKey = $collapseKey;
-
-      if($delayWhileIdle != '')
-        $this->delayWhileIdle = $delayWhileIdle;
-
-      $this->dryRun = $dryRun;
-      $this->timeToLive = $timeToLive;
       $this->data = $data;
+      $this->timeToLive = $timeToLive;
+      $this->delayWhileIdle = $delayWhileIdle;
       $this->restrictedPackageName = $restrictedPackageName;
+      $this->dryRun = $dryRun;
     }
 
   /**

@@ -10,7 +10,7 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals('', $message->getCollapseKey());
     $this->assertTrue(is_array($message->getData()) && empty($message->getData()));
     $this->assertEquals(-1, $message->getTimeToLive());
-    $this->assertEquals('', $message->getDelayWhileIdle());
+    $this->assertEquals(false, $message->getDelayWhileIdle());
     $this->assertEquals('', $message->getRestrictedPackageName());
     $this->assertFalse($message->getDryRun());
   }
