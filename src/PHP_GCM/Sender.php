@@ -15,6 +15,7 @@ class Sender {
   private static $MAX_BACKOFF_DELAY = 1024000;
 
   private $key;
+  private $certificatePath;
 
   /**
    * Default constructor.
@@ -23,6 +24,17 @@ class Sender {
    */
   public function __construct($key) {
     $this->key = $key;
+    $this->certificatePath = null;
+  }
+
+  /**
+   * Allows a non-default certificate chain to be used when communicating
+   * with Google APIs.
+   *
+   * @param string $certificatePath full qualified path to a certificate store.
+   */
+  public function setCertificatePath($certificatePath) {
+    $this->certificatePath = $certificatePath;
   }
 
   /**
@@ -102,6 +114,11 @@ class Sender {
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, Constants::$GCM_SEND_ENDPOINT);
+
+    if ($this->certificatePath != null) {
+      curl_setopt($ch, CURLOPT_CAINFO, $this->certificatePath);
+    }
+
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -251,6 +268,11 @@ class Sender {
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, Constants::$GCM_SEND_ENDPOINT);
+
+    if ($this->certificatePath != null) {
+      curl_setopt($ch, CURLOPT_CAINFO, $this->certificatePath);
+    }
+
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
