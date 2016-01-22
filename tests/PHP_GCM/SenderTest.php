@@ -12,7 +12,7 @@ class SenderTest extends \PHPUnit_Framework_TestCase {
 
   public function testAcceptsCertificatePath() {
     $sender = new Sender('api-key');
-    $sender->setCertificatePath('/my/cert/path');
+    $sender->certificatePath('/my/cert/path');
 
     $this->assertNotNull($sender);
   }
