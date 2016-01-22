@@ -80,6 +80,24 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals('com.lukekorth.android', $message->getRestrictedPackageName());
   }
 
+  public function testSettersAreChainable() {
+    $message = new Message();
+    $message->collapseKey('collapse-key')
+      ->delayWhileIdle(true)
+      ->dryRun(true)
+      ->timeToLive(100)
+      ->data(array('key1' => 'value1'))
+      ->addData('key2', 'value2')
+      ->restrictedPackageName('com.lukekorth.android');
+
+    $this->assertEquals('collapse-key', $message->getCollapseKey());
+    $this->assertEquals(true, $message->getDelayWhileIdle());
+    $this->assertEquals(true, $message->getDryRun());
+    $this->assertEquals(100, $message->getTimeToLive());
+    $this->assertEquals(array('key1' => 'value1', 'key2' => 'value2'), $message->getData());
+    $this->assertEquals('com.lukekorth.android', $message->getRestrictedPackageName());
+  }
+
   public function testBuildAcceptsSingleRecipient() {
     $message = new Message();
 

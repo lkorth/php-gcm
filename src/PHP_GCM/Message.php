@@ -44,9 +44,11 @@ class Message {
    * Sets the collapseKey property.
    *
    * @param string $collapseKey
+   * @return Message Returns the instance of this Message for method chaining.
    */
   public function collapseKey($collapseKey) {
     $this->collapseKey = $collapseKey;
+    return $this;
   }
 
   /**
@@ -62,9 +64,11 @@ class Message {
    * Sets the delayWhileIdle property (default value is {false}).
    *
    * @param bool $delayWhileIdle
+   * @return Message Returns the instance of this Message for method chaining.
    */
   public function delayWhileIdle($delayWhileIdle) {
     $this->delayWhileIdle = $delayWhileIdle;
+    return $this;
   }
 
   /**
@@ -82,9 +86,11 @@ class Message {
    * Sets the dryRun property (default value is {false}).
    *
    * @param bool $dryRun
+   * @return Message Returns the instance of this Message for method chaining.
    */
   public function dryRun($dryRun) {
     $this->dryRun = $dryRun;
+    return $this;
   }
 
   /**
@@ -100,9 +106,11 @@ class Message {
    * Sets the time to live, in seconds.
    *
    * @param int $timeToLive
+   * @return Message Returns the instance of this Message for method chaining.
    */
   public function timeToLive($timeToLive) {
     $this->timeToLive = $timeToLive;
+    return $this;
   }
 
   /**
@@ -119,18 +127,22 @@ class Message {
    *
    * @param string $key
    * @param string $value
+   * @return Message Returns the instance of this Message for method chaining.
    */
   public function addData($key, $value) {
     $this->data[$key] = $value;
+    return $this;
   }
 
   /**
    * Sets the data property
    *
    * @param array $data
+   * @return Message Returns the instance of this Message for method chaining.
    */
   public function data(array $data) {
     $this->data = $data;
+    return $this;
   }
 
   /**
@@ -146,9 +158,11 @@ class Message {
    * Sets the restrictedPackageName property.
    *
    * @param string $restrictedPackageName
+   * @return Message Returns the instance of this Message for method chaining.
    */
   public function restrictedPackageName($restrictedPackageName) {
     $this->restrictedPackageName = $restrictedPackageName;
+    return $this;
   }
 
   /**
