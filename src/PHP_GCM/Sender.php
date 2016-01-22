@@ -34,9 +34,11 @@ class Sender {
    * with Google APIs.
    *
    * @param string $certificatePath full qualified path to a certificate store.
+   * @return Sender Returns the instance of this Sender for method chaining.
    */
-  public function setCertificatePath($certificatePath) {
+  public function certificatePath($certificatePath) {
     $this->certificatePath = $certificatePath;
+    return $this;
   }
 
   /**
