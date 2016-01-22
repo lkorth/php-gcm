@@ -47,6 +47,23 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(100, $message->getTimeToLive());
   }
 
+  public function testAddsData() {
+    $message = new Message();
+
+    $message->addData('key1', 'value1');
+
+    $this->assertEquals(array('key1' => 'value1'), $message->getData());
+  }
+
+  public function testAddsDataWhenDataAlreadyExists() {
+    $message = new Message();
+    $message->data(array('key1' => 'value1', 'key2' => 'value2'));
+
+    $message->addData('key3', 'value3');
+
+    $this->assertEquals(array('key1' => 'value1', 'key2' => 'value2', 'key3' => 'value3'), $message->getData());
+  }
+
   public function testSetsData() {
     $message = new Message();
 
