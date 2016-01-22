@@ -4,15 +4,17 @@ namespace PHP_GCM;
 
 class Sender {
 
-  /**
-   * Initial delay before first retry, without jitter.
-   */
-  private static $BACKOFF_INITIAL_DELAY = 1000;
-
-  /**
-   * Maximum delay before a retry.
-   */
-  private static $MAX_BACKOFF_DELAY = 1024000;
+  const GCM_ENDPOINT = 'https://gcm-http.googleapis.com/gcm/send';
+  const BACKOFF_INITIAL_DELAY = 1000;
+  const MAX_BACKOFF_DELAY = 1024000;
+  const SUCCESS = 'success';
+  const FAILURE = 'failure';
+  const REGISTRATION_ID = 'registration_id';
+  const CANONICAL_IDS = 'canonical_ids';
+  const MULTICAST_ID = 'multicast_id';
+  const RESULTS = 'results';
+  const ERROR = 'error';
+  const MESSAGE_ID = 'message_id';
 
   private $key;
   private $certificatePath;
@@ -49,7 +51,7 @@ class Sender {
    * @param string $registrationId device where the message will be sent.
    * @param int $retries number of retries in case of service unavailability errors.
    *
-   * @return Result result of the request (see its javadoc for more details)
+   * @return MulticastResult result of the request (see its javadoc for more details)
    *
    * @throws \InvalidArgumentException if registrationId is {@literal null}.
    * @throws InvalidRequestException if GCM didn't return a 200 or 503 status.
@@ -58,7 +60,7 @@ class Sender {
   public function send(Message $message, $registrationId, $retries) {
     $attempt = 0;
     $result = null;
-    $backoff = Sender::$BACKOFF_INITIAL_DELAY;
+    $backoff = self::BACKOFF_INITIAL_DELAY;
 
     do {
       $attempt++;
@@ -68,7 +70,7 @@ class Sender {
       if($tryAgain) {
         $sleepTime = $backoff / 2 + rand(0, $backoff);
         sleep($sleepTime / 1000);
-        if(2 * $backoff < Sender::$MAX_BACKOFF_DELAY)
+        if(2 * $backoff < self::MAX_BACKOFF_DELAY)
           $backoff *= 2;
       }
     } while ($tryAgain);
@@ -86,7 +88,7 @@ class Sender {
    * @param Message $message to be sent, including the device's registration id.
    * @param string $registrationId device where the message will be sent.
    *
-   * @return Result|null result of the post, or {@literal null} if the GCM service
+   * @return MulticastResult|null result of the post, or {@literal null} if the GCM service
    *         was unavailable.
    *
    * @throws InvalidRequestException if GCM did not return a 200 or 503 status.
@@ -97,32 +99,17 @@ class Sender {
     if(empty($registrationId))
       throw new \InvalidArgumentException('registrationId can\'t be empty');
 
-    $body = Constants::$PARAM_REGISTRATION_ID . '=' . $registrationId . '&' .
-      Constants::$PARAM_DELAY_WHILE_IDLE . '=' . ($message->getDelayWhileIdle ? '1' : '0') . '&' .
-      Constants::$PARAM_TIME_TO_LIVE . '=' . $message->getTimeToLive();
-
-    $collapseKey = $message->getCollapseKey();
-    if($collapseKey != '')
-      $body .= '&' . Constants::$PARAM_COLLAPSE_KEY . '=' . $collapseKey;
-
-    foreach($message->getData() as $key => $value) {
-      $body .= '&' . Constants::$PARAM_PAYLOAD_PREFIX . $key . '=' . urlencode($value);
-    }
-
-    $headers = array('Content-Type: application/x-www-form-urlencoded;charset=UTF-8',
-      'Authorization: key=' . $this->key);
-
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, Constants::$GCM_SEND_ENDPOINT);
+    curl_setopt($ch, CURLOPT_URL, self::GCM_ENDPOINT);
 
     if ($this->certificatePath != null) {
       curl_setopt($ch, CURLOPT_CAINFO, $this->certificatePath);
     }
 
     curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: key=' . $this->key));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $message->build($registrationId));
     $response = curl_exec($ch);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
@@ -130,35 +117,36 @@ class Sender {
     if($status == 503)
       return null;
     if($status != 200)
-      throw new InvalidRequestException($status);
+      throw new InvalidRequestException($status, $response);
     if($response == '')
       throw new \Exception('Received empty response from GCM service.');
 
-    $lines = explode("\n", $response);
-    $responseParts = explode('=', $lines[0]);
-    $token = $responseParts[0];
-    $value = $responseParts[1];
-    if($token == Constants::$TOKEN_MESSAGE_ID) {
-      $result = new Result();
-      $result->setMessageId($value);
+    $response = json_decode($response, true);
+    $success = $response[self::SUCCESS];
+    $failure = $response[self::FAILURE];
+    $canonicalIds = $response[self::CANONICAL_IDS];
+    $multicastId = $response[self::MULTICAST_ID];
 
-      if(isset($lines[1]) && $lines[1] != '') {
-        $responseParts = explode('=', $lines[1]);
-        $token = $responseParts[0];
-        $value = $responseParts[1];
+    $multicastResult = new MulticastResult($success, $failure, $canonicalIds, $multicastId);
 
-        if($token == Constants::$TOKEN_CANONICAL_REG_ID)
-          $result->setCanonicalRegistrationId($value);
+    if(isset($response[self::RESULTS])){
+      $individualResults = $response[self::RESULTS];
+
+      foreach($individualResults as $singleResult) {
+        $messageId = isset($singleResult[self::MESSAGE_ID]) ? $singleResult[self::MESSAGE_ID] : null;
+        $canonicalRegId = isset($singleResult[self::REGISTRATION_ID]) ? $singleResult[self::REGISTRATION_ID] : null;
+        $error = isset($singleResult[self::ERROR]) ? $singleResult[self::ERROR] : null;
+
+        $result = new Result();
+        $result->setMessageId($messageId);
+        $result->setCanonicalRegistrationId($canonicalRegId);
+        $result->setErrorCode($error);
+
+        $multicastResult->addResult($result);
       }
-
-      return $result;
-    } else if($token == Constants::$TOKEN_ERROR) {
-      $result = new Result();
-      $result->setErrorCode($value);
-      return $result;
-    } else {
-      throw new \Exception('Received invalid response from GCM: ' . $lines[0]);
     }
+
+    return $multicastResult;
   }
 
   /**
@@ -184,7 +172,7 @@ class Sender {
   public function sendMulti(Message $message, array $registrationIds, $retries) {
     $attempt = 0;
     $multicastResult = null;
-    $backoff = Sender::$BACKOFF_INITIAL_DELAY;
+    $backoff = self::BACKOFF_INITIAL_DELAY;
 
     // results by registration id, it will be updated after each attempt
     // to send the messages
@@ -205,7 +193,7 @@ class Sender {
       if($tryAgain) {
         $sleepTime = $backoff / 2 + rand(0, $backoff);
         sleep($sleepTime / 1000);
-        if(2 * $backoff < Sender::$MAX_BACKOFF_DELAY)
+        if(2 * $backoff < self::MAX_BACKOFF_DELAY)
           $backoff *= 2;
       }
     } while ($tryAgain);
@@ -249,34 +237,17 @@ class Sender {
     if(is_null($registrationIds) || count($registrationIds) == 0)
       throw new \InvalidArgumentException('registrationIds cannot be null or empty');
 
-    $request = array();
-
-    if($message->getCollapseKey() != '')
-      $request[Constants::$PARAM_COLLAPSE_KEY] = $message->getCollapseKey();
-
-    $request[Constants::$PARAM_TIME_TO_LIVE] = $message->getTimeToLive();
-    $request[Constants::$PARAM_DELAY_WHILE_IDLE] = $message->getDelayWhileIdle();
-    $request[Constants::$JSON_REGISTRATION_IDS] = $registrationIds;
-
-    if(!is_null($message->getData()) && count($message->getData()) > 0)
-      $request[Constants::$JSON_PAYLOAD] = $message->getData();
-
-    $request = json_encode($request);
-
-    $headers = array('Content-Type: application/json',
-      'Authorization: key=' . $this->key);
-
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, Constants::$GCM_SEND_ENDPOINT);
+    curl_setopt($ch, CURLOPT_URL, self::GCM_ENDPOINT);
 
     if ($this->certificatePath != null) {
       curl_setopt($ch, CURLOPT_CAINFO, $this->certificatePath);
     }
 
     curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: key=' . $this->key));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $message->build($registrationIds));
     $response = curl_exec($ch);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
@@ -285,20 +256,20 @@ class Sender {
       throw new InvalidRequestException($status, $response);
 
     $response = json_decode($response, true);
-    $success = $response[Constants::$JSON_SUCCESS];
-    $failure = $response[Constants::$JSON_FAILURE];
-    $canonicalIds = $response[Constants::$JSON_CANONICAL_IDS];
-    $multicastId = $response[Constants::$JSON_MULTICAST_ID];
+    $success = $response[self::SUCCESS];
+    $failure = $response[self::FAILURE];
+    $canonicalIds = $response[self::CANONICAL_IDS];
+    $multicastId = $response[self::MULTICAST_ID];
 
     $multicastResult = new MulticastResult($success, $failure, $canonicalIds, $multicastId);
 
-    if(isset($response[Constants::$JSON_RESULTS])){
-      $individualResults = $response[Constants::$JSON_RESULTS];
+    if(isset($response[self::RESULTS])){
+      $individualResults = $response[self::RESULTS];
 
       foreach($individualResults as $singleResult) {
-        $messageId = isset($singleResult[Constants::$JSON_MESSAGE_ID]) ? $singleResult[Constants::$JSON_MESSAGE_ID] : null;
+        $messageId = isset($singleResult[self::MESSAGE_ID]) ? $singleResult[self::MESSAGE_ID] : null;
         $canonicalRegId = isset($singleResult[Constants::$TOKEN_CANONICAL_REG_ID]) ? $singleResult[Constants::$TOKEN_CANONICAL_REG_ID] : null;
-        $error = isset($singleResult[Constants::$JSON_ERROR]) ? $singleResult[Constants::$JSON_ERROR] : null;
+        $error = isset($singleResult[self::ERROR]) ? $singleResult[self::ERROR] : null;
 
         $result = new Result();
         $result->setMessageId($messageId);

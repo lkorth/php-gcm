@@ -4,6 +4,15 @@ namespace PHP_GCM;
 
 class Message {
 
+  const COLLAPSE_KEY = 'collapse_key';
+  const TIME_TO_LIVE = 'time_to_live';
+  const DRY_RUN = 'dry_run';
+  const DELAY_WHILE_IDLE = 'delay_while_idle';
+  const RESTRICTED_PACKAGE_NAME = 'restricted_package_name';
+  const REGISTRATION_IDS = 'registration_ids';
+  const DATA = 'data';
+  const TO = 'to';
+
   private $collapseKey;
   private $delayWhileIdle;
   private $dryRun;
@@ -149,5 +158,35 @@ class Message {
    */
   public function getRestrictedPackageName() {
     return $this->restrictedPackageName;
+  }
+
+  public function build($recipients) {
+    $message = array();
+
+    if (!is_array($recipients)) {
+      $message[self::TO] = $recipients;
+    } else if (count($recipients) == 1) {
+      $message[self::TO] = $recipients[0];
+    } else {
+      $message[self::REGISTRATION_IDS] = $recipients;
+    }
+
+    if ($this->collapseKey != '') {
+      $message[self::COLLAPSE_KEY] = $this->collapseKey;
+    }
+
+    $message[self::DELAY_WHILE_IDLE] = $this->delayWhileIdle;
+    $message[self::TIME_TO_LIVE] = $this->timeToLive;
+    $message[self::DRY_RUN] = $this->dryRun;
+
+    if ($this->restrictedPackageName != '') {
+      $message[self::RESTRICTED_PACKAGE_NAME] = $this->restrictedPackageName;
+    }
+
+    if (!is_null($this->data) && count($this->data) > 0) {
+      $message[self::DATA] = $this->data;
+    }
+
+    return json_encode($message);
   }
 }

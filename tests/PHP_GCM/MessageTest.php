@@ -62,4 +62,124 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
 
     $this->assertEquals('com.lukekorth.android', $message->getRestrictedPackageName());
   }
+
+  public function testBuildAcceptsSingleRecipient() {
+    $message = new Message();
+
+    $builtMessage = json_decode($message->build('recipient'), true);
+
+    $this->assertEquals('recipient', $builtMessage[Message::TO]);
+  }
+
+  public function testBuildAcceptsArrayWithSingleRecipient() {
+    $message = new Message();
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertEquals('recipient', $builtMessage[Message::TO]);
+  }
+
+  public function testBuildAcceptsArrayWithMultipleRecipients() {
+    $message = new Message();
+
+    $builtMessage = json_decode($message->build(array('recipient', 'other-recipient')), true);
+
+    $this->assertEquals(2, count($builtMessage[Message::REGISTRATION_IDS]));
+  }
+
+  public function testBuildDoesNotSetCollapseKeyWhenAbsent() {
+    $message = new Message();
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertFalse(array_key_exists(Message::COLLAPSE_KEY, $builtMessage));
+  }
+
+  public function testBuildSetsCollapseKey() {
+    $message = new Message();
+    $message->collapseKey('collapse-key');
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertEquals('collapse-key', $builtMessage[Message::COLLAPSE_KEY]);
+  }
+
+  public function testBuildSetsDelayWhileIdle() {
+    $message = new Message();
+    $message->delayWhileIdle(true);
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertTrue($builtMessage[Message::DELAY_WHILE_IDLE]);
+  }
+
+  public function testBuildSetsTimeToLive() {
+    $message = new Message();
+    $message->timeToLive(100);
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertEquals(100, $builtMessage[Message::TIME_TO_LIVE]);
+  }
+
+  public function testBuildSetsDryRun() {
+    $message = new Message();
+    $message->dryRun(true);
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertTrue($builtMessage[Message::DRY_RUN]);
+  }
+
+  public function testBuildDoesNotSetRestrictedPackageNameWhenAbsent() {
+    $message = new Message();
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertFalse(array_key_exists(Message::RESTRICTED_PACKAGE_NAME, $builtMessage));
+  }
+
+  public function testBuildSetsRestrictedPackageName() {
+    $message = new Message();
+    $message->restrictedPackageName('package-name');
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertEquals('package-name', $builtMessage[Message::RESTRICTED_PACKAGE_NAME]);
+  }
+
+  public function testBuildDoesNotSetDataWhenDataIsAbsent() {
+    $message = new Message();
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertFalse(array_key_exists(Message::DATA, $builtMessage));
+  }
+
+  public function testBuildDoesNotSetDataWhenDataIsEmpty() {
+    $message = new Message();
+    $message->data(array());
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertFalse(array_key_exists(Message::DATA, $builtMessage));
+  }
+
+  public function testBuildSetsData() {
+    $message = new Message();
+    $message->data(array('key' => 'value'));
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertEquals('value', $builtMessage[Message::DATA]['key']);
+  }
+
+  public function testBuildHandlesMultiDimentionalArraysForData() {
+    $message = new Message();
+    $message->data(array('foo' => array('bar' => 'baz')));
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertEquals('baz', $builtMessage[Message::DATA]['foo']['bar']);
+  }
 }
