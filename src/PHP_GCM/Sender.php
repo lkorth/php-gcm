@@ -17,6 +17,7 @@ class Sender {
   const MESSAGE_ID = 'message_id';
 
   private $key;
+  private $retries;
   private $certificatePath;
 
   /**
@@ -26,6 +27,7 @@ class Sender {
    */
   public function __construct($key) {
     $this->key = $key;
+    $this->retries = 3;
     $this->certificatePath = null;
   }
 
@@ -42,203 +44,91 @@ class Sender {
   }
 
   /**
-   * Sends a message to one device, retrying in case of unavailability.
+   * Set the number of retries to attempt in the case of service unavailability. Defaults to 3 retries.
    *
-   * <p>
-   * <strong>Note: </strong> this method uses exponential back-off to retry in
-   * case of service unavailability and hence could block the calling thread
-   * for many seconds.
+   * Note: Retries use exponential back-off in the case of service unavailability and
+   * could block the calling thread for many seconds.
    *
-   * @param Message $message to be sent, including the device's registration id.
-   * @param string $registrationId device where the message will be sent.
    * @param int $retries number of retries in case of service unavailability errors.
-   *
-   * @return MulticastResult result of the request (see its javadoc for more details)
-   *
-   * @throws \InvalidArgumentException if registrationId is {@literal null}.
-   * @throws InvalidRequestException if GCM didn't return a 200 or 503 status.
-   * @throws \Exception if message could not be sent.
+   * @return Sender Returns the instance of this Sender for method chaining.
    */
-  public function send(Message $message, $registrationId, $retries) {
-    $attempt = 0;
-    $result = null;
-    $backoff = self::BACKOFF_INITIAL_DELAY;
-
-    do {
-      $attempt++;
-
-      $result = $this->sendNoRetry($message, $registrationId);
-      $tryAgain = $result == null && $attempt <= $retries;
-      if($tryAgain) {
-        $sleepTime = $backoff / 2 + rand(0, $backoff);
-        sleep($sleepTime / 1000);
-        if(2 * $backoff < self::MAX_BACKOFF_DELAY)
-          $backoff *= 2;
-      }
-    } while ($tryAgain);
-
-    if(is_null($result))
-      throw new \Exception('Could not send message after ' . $attempt . ' attempts');
-
-    return $result;
+  public function retries($retries) {
+    $this->retries = $retries;
+    return $this;
   }
 
   /**
-   * Sends a message without retrying in case of service unavailability. See
-   * send() for more info.
+   * Sends a GCM message to one or more devices, retrying up to the specified
+   * number of retries in case of unavailability.
    *
-   * @param Message $message to be sent, including the device's registration id.
-   * @param string $registrationId device where the message will be sent.
+   * Note: Retries use exponential back-off in the case of service unavailability and
+   * could block the calling thread for many seconds.
    *
-   * @return MulticastResult|null result of the post, or {@literal null} if the GCM service
-   *         was unavailable.
-   *
-   * @throws InvalidRequestException if GCM did not return a 200 or 503 status.
-   * @throws \InvalidArgumentException if registrationId is {@literal null}.
-   * @throws \Exception if message could not be sent.
-   */
-  public function sendNoRetry(Message $message, $registrationId) {
-    if(empty($registrationId))
-      throw new \InvalidArgumentException('registrationId can\'t be empty');
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, self::GCM_ENDPOINT);
-
-    if ($this->certificatePath != null) {
-      curl_setopt($ch, CURLOPT_CAINFO, $this->certificatePath);
-    }
-
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: key=' . $this->key));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $message->build($registrationId));
-    $response = curl_exec($ch);
-    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if($status == 503)
-      return null;
-    if($status != 200)
-      throw new InvalidRequestException($status, $response);
-    if($response == '')
-      throw new \Exception('Received empty response from GCM service.');
-
-    $response = json_decode($response, true);
-    $success = $response[self::SUCCESS];
-    $failure = $response[self::FAILURE];
-    $canonicalIds = $response[self::CANONICAL_IDS];
-    $multicastId = $response[self::MULTICAST_ID];
-
-    $multicastResult = new MulticastResult($success, $failure, $canonicalIds, $multicastId);
-
-    if(isset($response[self::RESULTS])){
-      $individualResults = $response[self::RESULTS];
-
-      foreach($individualResults as $singleResult) {
-        $messageId = isset($singleResult[self::MESSAGE_ID]) ? $singleResult[self::MESSAGE_ID] : null;
-        $canonicalRegId = isset($singleResult[self::REGISTRATION_ID]) ? $singleResult[self::REGISTRATION_ID] : null;
-        $error = isset($singleResult[self::ERROR]) ? $singleResult[self::ERROR] : null;
-
-        $result = new Result();
-        $result->setMessageId($messageId);
-        $result->setCanonicalRegistrationId($canonicalRegId);
-        $result->setErrorCode($error);
-
-        $multicastResult->addResult($result);
-      }
-    }
-
-    return $multicastResult;
-  }
-
-  /**
-   * Sends a message to many devices, retrying in case of unavailability.
-   *
-   * <p>
-   * <strong>Note: </strong> this method uses exponential back-off to retry in
-   * case of service unavailability and hence could block the calling thread
-   * for many seconds.
-   *
-   * @param Message message to be sent.
-   * @param array $registrationIds registration id of the devices that will receive
-   *        the message.
-   * @param int $retries number of retries in case of service unavailability errors.
-   *
+   * @param Message $message to be sent
+   * @param string|array $registrationIds String registration id or an array of registration ids of the devices where the message will be sent.
    * @return MulticastResult combined result of all requests made.
-   *
-   * @throws \InvalidArgumentException if registrationIds is {@literal null} or
-   *         empty.
-   * @throws InvalidRequestException if GCM didn't returned a 200 or 503 status.
-   * @throws \Exception if message could not be sent.
+   * @throws \InvalidArgumentException If registrationIds is empty
+   * @throws InvalidRequestException If GCM did not return a 200 after the specified number of retries.
    */
-  public function sendMulti(Message $message, array $registrationIds, $retries) {
+  public function send(Message $message, $registrationIds) {
+    if (empty($registrationIds)) {
+      throw new \InvalidArgumentException('registrationId cannot be empty');
+    }
+
+    if (!is_array($registrationIds)) {
+      $registrationIds = array($registrationIds);
+    }
+
     $attempt = 0;
-    $multicastResult = null;
     $backoff = self::BACKOFF_INITIAL_DELAY;
-
-    // results by registration id, it will be updated after each attempt
-    // to send the messages
     $results = array();
-    $unsentRegIds = array_values($registrationIds);
-
+    $unsentRegistrationIds = array_values($registrationIds);
     $multicastIds = array();
-
     do {
       $attempt++;
 
-      $multicastResult = $this->sendNoRetryMulti($message, $unsentRegIds);
-      $multicastId = $multicastResult->getMulticastId();
-      $multicastIds[] = $multicastId;
-      $unsentRegIds = $this->updateStatus($unsentRegIds, $results, $multicastResult);
+      try {
+        $multicastResult = $this->makeRequest($message, $unsentRegistrationIds);
+        $multicastIds[] = $multicastResult->getMulticastId();
+        $unsentRegistrationIds = $this->updateStatus($unsentRegistrationIds, $results, $multicastResult);
+      } catch (InvalidRequestException $e) {
+        if ($attempt >= $retries) {
+          throw $e;
+        }
+      }
 
-      $tryAgain = count($unsentRegIds) > 0 && $attempt <= $retries;
-      if($tryAgain) {
+      $tryAgain = count($unsentRegistrationIds) > 0 && $attempt <= $retries;
+      if ($tryAgain) {
         $sleepTime = $backoff / 2 + rand(0, $backoff);
         sleep($sleepTime / 1000);
-        if(2 * $backoff < self::MAX_BACKOFF_DELAY)
+        if (2 * $backoff < self::MAX_BACKOFF_DELAY) {
           $backoff *= 2;
+        }
       }
     } while ($tryAgain);
 
     $success = $failure = $canonicalIds = 0;
-    foreach($results as $result) {
-      if(!is_null($result->getMessageId())) {
+    foreach ($results as $result) {
+      if (!is_null($result->getMessageId())) {
         $success++;
 
-        if(!is_null($result->getCanonicalRegistrationId()))
+        if (!is_null($result->getCanonicalRegistrationId())) {
           $canonicalIds++;
+        }
       } else {
         $failure++;
       }
     }
 
-    $multicastId = $multicastIds[0];
-    $builder = new MulticastResult($success, $failure, $canonicalIds, $multicastId, $multicastIds);
-
-    // add results, in the same order as the input
+    $result = new MulticastResult($success, $failure, $canonicalIds, $multicastIds[0], $multicastIds);
     foreach($registrationIds as $registrationId) {
-      $builder->addResult($results[$registrationId]);
+      $result->addResult($results[$registrationId]);
     }
 
-    return $builder;
+    return $result;
   }
 
-  /**
-   * Sends a message without retrying in case of service unavailability. See
-   * sendMulti() for more info.
-   *
-   * @return bool {@literal true} if the message was sent successfully,
-   *         {@literal false} if it failed but could be retried.
-   *
-   * @throws \InvalidArgumentException if registrationIds is {@literal null} or
-   *         empty.
-   * @throws InvalidRequestException if GCM didn't returned a 200 status.
-   * @throws \Exception if message could not be sent or received.
-   */
-  public function sendNoRetryMulti(Message $message, array $registrationIds) {
-    if(is_null($registrationIds) || count($registrationIds) == 0)
-      throw new \InvalidArgumentException('registrationIds cannot be null or empty');
-
+  private function makeRequest(Message $message, array $registrationIds) {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, self::GCM_ENDPOINT);
 
@@ -254,8 +144,17 @@ class Sender {
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if($status != 200)
+    if ($status == 400) {
+      throw new InvalidRequestException($status, 'Check that the JSON message is properly formatted and contains valid fields.');
+    } else if ($status == 401) {
+      throw new InvalidRequestException($status, 'The sender account used to send a message could not be authenticated.');
+    } else if ($status == 500) {
+      throw new InvalidRequestException($status, 'The server encountered an error while trying to process the request.');
+    } else if ($status == 503) {
+      throw new InvalidRequestException($status, 'The server could not process the request in time.');
+    } else if ($status != 200) {
       throw new InvalidRequestException($status, $response);
+    }
 
     $response = json_decode($response, true);
     $success = $response[self::SUCCESS];
@@ -270,7 +169,7 @@ class Sender {
 
       foreach($individualResults as $singleResult) {
         $messageId = isset($singleResult[self::MESSAGE_ID]) ? $singleResult[self::MESSAGE_ID] : null;
-        $canonicalRegId = isset($singleResult[Constants::$TOKEN_CANONICAL_REG_ID]) ? $singleResult[Constants::$TOKEN_CANONICAL_REG_ID] : null;
+        $canonicalRegId = isset($singleResult[self::REGISTRATION_ID]) ? $singleResult[self::REGISTRATION_ID] : null;
         $error = isset($singleResult[self::ERROR]) ? $singleResult[self::ERROR] : null;
 
         $result = new Result();
