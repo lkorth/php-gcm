@@ -1,6 +1,7 @@
 # php-gcm
 
 [![Build Status](https://travis-ci.org/lkorth/php-gcm.svg?branch=travis)](https://travis-ci.org/lkorth/php-gcm)
+[![Total Downloads](https://poser.pugx.org/php-gcm/php-gcm/downloads)](https://packagist.org/packages/php-gcm/php-gcm)
 
 Why
 --------
