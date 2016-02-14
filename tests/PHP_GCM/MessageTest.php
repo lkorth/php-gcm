@@ -80,6 +80,15 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals('com.lukekorth.android', $message->getRestrictedPackageName());
   }
 
+  public function testSetsNotification() {
+    $message = new Message();
+    $notification = new Notification();
+
+    $message->notification($notification);
+
+    $this->assertEquals($notification, $message->getNotification());
+  }
+
   public function testSettersAreChainable() {
     $message = new Message();
     $message->collapseKey('collapse-key')
@@ -216,5 +225,56 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $builtMessage = json_decode($message->build(array('recipient')), true);
 
     $this->assertEquals('baz', $builtMessage[Message::DATA]['foo']['bar']);
+  }
+
+  public function testBuildDoesNotIncludeNotificationWhenNotSet() {
+    $message = new Message();
+
+    $builtMessage = json_decode($message->build('recipient'), true);
+
+    $this->assertFalse(array_key_exists(Message::NOTIFICATION, $builtMessage));
+  }
+
+  public function testBuildIncludesNotificationWhenSet() {
+    $message = new Message();
+    $message->notification(new Notification());
+
+    $builtMessage = json_decode($message->build('recipient'), true);
+
+    $this->assertTrue(array_key_exists(Message::NOTIFICATION, $builtMessage));
+  }
+
+  public function testBuildSetsNotification() {
+    $notification = new Notification();
+    $notification->icon('icon')
+      ->sound('sound')
+      ->title('title')
+      ->body('body')
+      ->badge(1)
+      ->tag('tag')
+      ->color('color')
+      ->clickAction('click-action')
+      ->bodyLocKey('bodyLocKey')
+      ->bodyLocArgs(array('key' => 'value'))
+      ->titleLocKey('titleLocKey')
+      ->titleLocArgs(array('key' => 'value'));
+    $message = new Message();
+    $message->notification($notification);
+
+    $builtMessage = json_decode($message->build('recipient'), true);
+    $builtNotification = $builtMessage[Message::NOTIFICATION];
+
+    $this->assertEquals('icon', $builtNotification[Message::NOTIFICATION_ICON]);
+    $this->assertEquals('sound', $builtNotification[Message::NOTIFICATION_SOUND]);
+    $this->assertEquals('title', $builtNotification[Message::NOTIFICATION_TITLE]);
+    $this->assertEquals('body', $builtNotification[Message::NOTIFICATION_BODY]);
+    $this->assertEquals(1, $builtNotification[Message::NOTIFICATION_BADGE]);
+    $this->assertEquals('tag', $builtNotification[Message::NOTIFICATION_TAG]);
+    $this->assertEquals('color', $builtNotification[Message::NOTIFICATION_COLOR]);
+    $this->assertEquals('click-action', $builtNotification[Message::NOTIFICATION_CLICK_ACTION]);
+    $this->assertEquals('bodyLocKey', $builtNotification[Message::NOTIFICATION_BODY_LOC_KEY]);
+    $this->assertEquals(array('key' => 'value'), $builtNotification[Message::NOTIFICATION_BODY_LOC_ARGS]);
+    $this->assertEquals('titleLocKey', $builtNotification[Message::NOTIFICATION_TITLE_LOC_KEY]);
+    $this->assertEquals(array('key' => 'value'), $builtNotification[Message::NOTIFICATION_TITLE_LOC_ARGS]);
   }
 }

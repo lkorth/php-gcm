@@ -12,6 +12,19 @@ class Message {
   const REGISTRATION_IDS = 'registration_ids';
   const DATA = 'data';
   const TO = 'to';
+  const NOTIFICATION = 'notification';
+  const NOTIFICATION_TITLE = 'title';
+  const NOTIFICATION_BODY = 'body';
+  const NOTIFICATION_ICON = 'icon';
+  const NOTIFICATION_SOUND = 'sound';
+  const NOTIFICATION_BADGE = 'badge';
+  const NOTIFICATION_TAG = 'tag';
+  const NOTIFICATION_COLOR = 'color';
+  const NOTIFICATION_CLICK_ACTION = 'click_action';
+  const NOTIFICATION_BODY_LOC_KEY = 'body_loc_key';
+  const NOTIFICATION_BODY_LOC_ARGS = 'body_loc_args';
+  const NOTIFICATION_TITLE_LOC_KEY = 'title_loc_key';
+  const NOTIFICATION_TITLE_LOC_ARGS = 'title_loc_args';
 
   private $collapseKey;
   private $delayWhileIdle;
@@ -19,6 +32,7 @@ class Message {
   private $timeToLive;
   private $data;
   private $restrictedPackageName;
+  private $notification;
 
   /**
    * Message Constructor
@@ -51,11 +65,6 @@ class Message {
     return $this;
   }
 
-  /**
-   * Gets the collapseKey property
-   *
-   * @return string
-   */
   public function getCollapseKey() {
     return $this->collapseKey;
   }
@@ -71,11 +80,6 @@ class Message {
     return $this;
   }
 
-  /**
-   * Gets the delayWhileIdle property
-   *
-   * @return bool
-   */
   public function getDelayWhileIdle() {
     if(isset($this->delayWhileIdle))
       return $this->delayWhileIdle;
@@ -93,11 +97,6 @@ class Message {
     return $this;
   }
 
-  /**
-   * Gets the dryRun property
-   *
-   * @return bool
-   */
   public function getDryRun() {
     return $this->dryRun;
   }
@@ -113,11 +112,6 @@ class Message {
     return $this;
   }
 
-  /**
-   * Gets the timeToLive property
-   *
-   * @return int
-   */
   public function getTimeToLive() {
     return $this->timeToLive;
   }
@@ -145,11 +139,6 @@ class Message {
     return $this;
   }
 
-  /**
-   * Gets the data property
-   *
-   * @return array
-   */
   public function getData() {
     return $this->data;
   }
@@ -165,13 +154,23 @@ class Message {
     return $this;
   }
 
-  /**
-   * Gets the restrictedPackageName property
-   *
-   * @return string
-   */
   public function getRestrictedPackageName() {
     return $this->restrictedPackageName;
+  }
+
+  /**
+   * Sets the notification for the message. See the Notification class for more information.
+   *
+   * @param Notification $notification
+   * @return Message Returns the instance of this Message for method chaining.
+   */
+  public function notification(Notification $notification) {
+    $this->notification = $notification;
+    return $this;
+  }
+
+  public function getNotification() {
+    return $this->notification;
   }
 
   public function build($recipients) {
@@ -199,6 +198,26 @@ class Message {
 
     if (!is_null($this->data) && count($this->data) > 0) {
       $message[self::DATA] = $this->data;
+    }
+
+    if ($this->notification != null) {
+      $message[self::NOTIFICATION] = array();
+
+      if ($this->notification->getBadge() != null) {
+        $message[self::NOTIFICATION][self::NOTIFICATION_BADGE] = $this->notification->getBadge();
+      }
+
+      $message[self::NOTIFICATION][self::NOTIFICATION_BODY] = $this->notification->getBody();
+      $message[self::NOTIFICATION][self::NOTIFICATION_BODY_LOC_ARGS] = $this->notification->getBodyLocArgs();
+      $message[self::NOTIFICATION][self::NOTIFICATION_BODY_LOC_KEY] = $this->notification->getBodyLocKey();
+      $message[self::NOTIFICATION][self::NOTIFICATION_CLICK_ACTION] = $this->notification->getClickAction();
+      $message[self::NOTIFICATION][self::NOTIFICATION_COLOR] = $this->notification->getColor();
+      $message[self::NOTIFICATION][self::NOTIFICATION_ICON] = $this->notification->getIcon();
+      $message[self::NOTIFICATION][self::NOTIFICATION_SOUND] = $this->notification->getSound();
+      $message[self::NOTIFICATION][self::NOTIFICATION_TAG] = $this->notification->getTag();
+      $message[self::NOTIFICATION][self::NOTIFICATION_TITLE] = $this->notification->getTitle();
+      $message[self::NOTIFICATION][self::NOTIFICATION_TITLE_LOC_ARGS] = $this->notification->getTitleLocArgs();
+      $message[self::NOTIFICATION][self::NOTIFICATION_TITLE_LOC_KEY] = $this->notification->getTitleLocKey();
     }
 
     return json_encode($message);
