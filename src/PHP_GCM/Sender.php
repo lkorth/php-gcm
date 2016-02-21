@@ -16,6 +16,16 @@ class Sender {
   const ERROR = 'error';
   const MESSAGE_ID = 'message_id';
 
+  const DEVICE_GROUP_PROJET_ID_HEADER = 'project_id';
+  const DEVICE_GROUP_ENDPOINT = 'https://android.googleapis.com/gcm/notification';
+  const DEVICE_GROUP_OPERATION = 'operation';
+  const DEVICE_GROUP_CREATE = 'create';
+  const DEVICE_GROUP_ADD = 'add';
+  const DEVICE_GROUP_REMOVE = 'remove';
+  const DEVICE_GROUP_NOTIFICATION_KEY_NAME = 'notification_key_name';
+  const DEVICE_GROUP_REGISTRATION_IDS = 'registration_ids';
+  const DEVICE_GROUP_NOTIFICATION_KEY = 'notification_key';
+
   private $key;
   private $retries;
   private $certificatePath;
@@ -72,7 +82,7 @@ class Sender {
    */
   public function send(Message $message, $registrationIds) {
     if (empty($registrationIds)) {
-      throw new \InvalidArgumentException('registrationId cannot be empty');
+      throw new \InvalidArgumentException('registrationIds cannot be empty');
     }
 
     if (!is_array($registrationIds)) {
@@ -128,17 +138,121 @@ class Sender {
     return $result;
   }
 
-  private function makeRequest(Message $message, array $registrationIds) {
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, self::GCM_ENDPOINT);
+  /**
+   * Creates a device group under the specified senderId with the specificed notificationKeyName and adds all
+   * devices in registrationIds to the group.
+   *
+   * @param $senderId A unique numerical value created when you configure your API project
+   *        (given as "Project Number" in the Google Developers Console). The sender ID is used in the registration
+   *        process to identify an app server that is permitted to send messages to the client app.
+   * @param $notificationKeyName a name or identifier (e.g., it can be a username) that is unique to a given group.
+   *        The notificationKeyName and notificationKey are unique to a group of registration tokens. It is important
+   *        that notificationKeyName is unique per client app if you have multiple client apps for the same sender ID.
+   *        This ensures that messages only go to the intended target app.
+   * @param string|array $registrationIds String registration id or an array of registration ids of the devices to add to the group.
+   * @return string notificationKey used to send a notification to all the devices in the group.
+   * @throws \InvalidArgumentException If senderId, notificationKeyName or registrationIds are empty.
+   * @throws InvalidRequestException If GCM did not return a 200.
+   */
+  public function createDeviceGroup($senderId, $notificationKeyName, array $registrationIds) {
+    return $this->performDeviceGroupOperation($senderId, $notificationKeyName, null, $registrationIds, self::DEVICE_GROUP_CREATE);
+  }
 
-    if ($this->certificatePath != null) {
-      curl_setopt($ch, CURLOPT_CAINFO, $this->certificatePath);
+  /**
+   * Adds devices to an existing device group.
+   *
+   * @param $senderId A unique numerical value created when you configure your API project
+   *        (given as "Project Number" in the Google Developers Console). The sender ID is used in the registration
+   *        process to identify an app server that is permitted to send messages to the client app.
+   * @param $notificationKeyName a name or identifier (e.g., it can be a username) that is unique to a given group.
+   *        The notificationKeyName and notificationKey are unique to a group of registration tokens. It is important
+   *        that notificationKeyName is unique per client app if you have multiple client apps for the same sender ID.
+   *        This ensures that messages only go to the intended target app.
+   * @param $notificationKey the notificationKey returned from Sender#createDeviceGroup.
+   * @param string|array $registrationIds String registration id or an array of registration ids of the devices to add to the group.
+   * @return string notificationKey used to send a notification to all the devices in the group.
+   * @throws \InvalidArgumentException If senderId, notificationKeyName, notificationKey or registrationIds are empty.
+   * @throws InvalidRequestException If GCM did not return a 200.
+   */
+  public function addDeviceToGroup($senderId, $notificationKeyName, $notificationKey, array $registrationIds) {
+    if (empty($notificationKey)) {
+      throw new \InvalidArgumentException('notificationKey cannot be empty');
     }
 
-    curl_setopt($ch, CURLOPT_POST, true);
+    return $this->performDeviceGroupOperation($senderId, $notificationKeyName, $notificationKey, $registrationIds, self::DEVICE_GROUP_ADD);
+  }
+
+  /**
+   * Removes devices from an existing device group.
+   *
+   * @param $senderId A unique numerical value created when you configure your API project
+   *        (given as "Project Number" in the Google Developers Console). The sender ID is used in the registration
+   *        process to identify an app server that is permitted to send messages to the client app.
+   * @param $notificationKeyName a name or identifier (e.g., it can be a username) that is unique to a given group.
+   *        The notificationKeyName and notificationKey are unique to a group of registration tokens. It is important
+   *        that notificationKeyName is unique per client app if you have multiple client apps for the same sender ID.
+   *        This ensures that messages only go to the intended target app.
+   * @param $notificationKey the notificationKey returned from Sender#createDeviceGroup.
+   * @param string|array $registrationIds String registration id or an array of registration ids of the devices to add to the group.
+   * @return string notificationKey used to send a notification to all the devices in the group.
+   * @throws \InvalidArgumentException If senderId, notificationKeyName, notificationKey or registrationIds are empty.
+   * @throws InvalidRequestException If GCM did not return a 200.
+   */
+  public function removeDeviceFromGroup($senderId, $notificationKeyName, $notificationKey, array $registrationIds) {
+    if (empty($notificationKey)) {
+      throw new \InvalidArgumentException('notificationKey cannot be empty');
+    }
+
+    return $this->performDeviceGroupOperation($senderId, $notificationKeyName, $notificationKey, $registrationIds, self::DEVICE_GROUP_REMOVE);
+  }
+
+  private function performDeviceGroupOperation($senderId, $notificationKeyName, $notificationKey, array $registrationIds, $operation) {
+    if (empty($senderId)) {
+      throw new \InvalidArgumentException('senderId cannot be empty');
+    }
+
+    if (empty($notificationKeyName)) {
+      throw new \InvalidArgumentException('notificationKeyName cannot be empty');
+    }
+
+    if (empty($registrationIds)) {
+      throw new \InvalidArgumentException('registrationIds cannot be empty');
+    }
+
+    if (!is_array($registrationIds)) {
+      $registrationIds = array($registrationIds);
+    }
+
+    $request = array();
+    $request[self::DEVICE_GROUP_OPERATION] = $operation;
+    $request[self::DEVICE_GROUP_NOTIFICATION_KEY_NAME] = $notificationKeyName;
+    $request[self::DEVICE_GROUP_REGISTRATION_IDS] = $registrationIds;
+
+    if ($notificationKey != null) {
+      $request[self::DEVICE_GROUP_NOTIFICATION_KEY] = $notificationKey;
+    }
+
+    $ch = $this->getCurlRequest();
+    curl_setopt($ch, CURLOPT_URL, self::DEVICE_GROUP_ENDPOINT);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: key=' . $this->key, self::DEVICE_GROUP_PROJET_ID_HEADER . ': ' . $senderId));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($request));
+    $response = curl_exec($ch);
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($status != 200) {
+      $response = json_decode($response, true);
+      throw new InvalidRequestException($status, $response[self::ERROR]);
+    }
+
+    $response = json_decode($response, true);
+    return $response[self::DEVICE_GROUP_NOTIFICATION_KEY];
+  }
+
+  private function makeRequest(Message $message, array $registrationIds) {
+    $ch = $this->getCurlRequest();
+    curl_setopt($ch, CURLOPT_URL, self::GCM_ENDPOINT);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: key=' . $this->key));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $message->build($registrationIds));
     $response = curl_exec($ch);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -214,5 +328,18 @@ class Sender {
     }
 
     return $newUnsentRegIds;
+  }
+
+  private function getCurlRequest() {
+    $ch = curl_init();
+
+    if ($this->certificatePath != null) {
+      curl_setopt($ch, CURLOPT_CAINFO, $this->certificatePath);
+    }
+
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    return $ch;
   }
 }
