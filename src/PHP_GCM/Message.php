@@ -25,6 +25,8 @@ class Message {
   const NOTIFICATION_BODY_LOC_ARGS = 'body_loc_args';
   const NOTIFICATION_TITLE_LOC_KEY = 'title_loc_key';
   const NOTIFICATION_TITLE_LOC_ARGS = 'title_loc_args';
+  const CONTENT_AVAILABLE = 'content_available';
+  const PRIORITY = 'priority';
 
   private $collapseKey;
   private $delayWhileIdle;
@@ -33,6 +35,8 @@ class Message {
   private $data;
   private $restrictedPackageName;
   private $notification;
+  private $contentAvailable;
+  private $priority;
 
   /**
    * Message Constructor
@@ -173,6 +177,36 @@ class Message {
     return $this->notification;
   }
 
+  /**
+   * Sets the contentAvailable property
+   *
+   * @param $contentAvailable
+   * @return $this
+   */
+  public function contentAvailable($contentAvailable) {
+    $this->contentAvailable = $contentAvailable;
+    return $this;
+  }
+
+  public function getContentAvailable() {
+    return $this->contentAvailable;
+  }
+
+  /**
+   * Sets the priority property
+   *
+   * @param $priority
+   * @return $this
+   */
+  public function priority($priority) {
+    $this->priority = $priority;
+    return $this;
+  }
+
+  public function getPriority() {
+    return $this->priority;
+  }
+
   public function build($recipients) {
     $message = array();
 
@@ -194,6 +228,14 @@ class Message {
 
     if ($this->restrictedPackageName != '') {
       $message[self::RESTRICTED_PACKAGE_NAME] = $this->restrictedPackageName;
+    }
+
+    if ($this->contentAvailable) {
+      $message[self::CONTENT_AVAILABLE] = $this->contentAvailable;
+    }
+
+    if ($this->priority) {
+      $message[self::PRIORITY] = $this->priority;
     }
 
     if (!is_null($this->data) && count($this->data) > 0) {
