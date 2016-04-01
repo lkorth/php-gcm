@@ -102,12 +102,12 @@ class Sender {
         $multicastIds[] = $multicastResult->getMulticastId();
         $unsentRegistrationIds = $this->updateStatus($unsentRegistrationIds, $results, $multicastResult);
       } catch (InvalidRequestException $e) {
-        if ($attempt >= $retries) {
+        if ($attempt >= $this->retries) {
           throw $e;
         }
       }
 
-      $tryAgain = count($unsentRegistrationIds) > 0 && $attempt <= $retries;
+      $tryAgain = count($unsentRegistrationIds) > 0 && $attempt <= $this->retries;
       if ($tryAgain) {
         $sleepTime = $backoff / 2 + rand(0, $backoff);
         sleep($sleepTime / 1000);
