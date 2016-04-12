@@ -76,7 +76,7 @@ class Sender {
    *
    * @param Message $message to be sent
    * @param string|array $registrationIds String registration id or an array of registration ids of the devices where the message will be sent.
-   * @return MulticastResult combined result of all requests made.
+   * @return AggregateResult combined result of all requests made.
    * @throws \InvalidArgumentException If registrationIds is empty
    * @throws InvalidRequestException If GCM did not return a 200 after the specified number of retries.
    */
@@ -89,53 +89,60 @@ class Sender {
       $registrationIds = array($registrationIds);
     }
 
-    $attempt = 0;
-    $backoff = self::BACKOFF_INITIAL_DELAY;
-    $results = array();
-    $unsentRegistrationIds = array_values($registrationIds);
-    $multicastIds = array();
-    do {
-      $attempt++;
+    $chunks = array_chunk($registrationIds, 1000);
 
-      try {
-        $multicastResult = $this->makeRequest($message, $unsentRegistrationIds);
-        $multicastIds[] = $multicastResult->getMulticastId();
-        $unsentRegistrationIds = $this->updateStatus($unsentRegistrationIds, $results, $multicastResult);
-      } catch (InvalidRequestException $e) {
-        if ($attempt >= $this->retries) {
-          throw $e;
+    $multicastResults = array();
+    foreach($chunks as $chunk) {
+      $attempt = 0;
+      $backoff = self::BACKOFF_INITIAL_DELAY;
+      $results = array();
+      $unsentRegistrationIds = array_values($chunk);
+      $multicastIds = array();
+      do {
+        $attempt++;
+
+        try {
+          $multicastResult = $this->makeRequest($message, $unsentRegistrationIds);
+          $multicastIds[] = $multicastResult->getMulticastId();
+          $unsentRegistrationIds = $this->updateStatus($unsentRegistrationIds, $results, $multicastResult);
+        } catch (InvalidRequestException $e) {
+          if ($attempt >= $this->retries) {
+            throw $e;
+          }
+        }
+
+        $tryAgain = count($unsentRegistrationIds) > 0 && $attempt <= $this->retries;
+        if ($tryAgain) {
+          $sleepTime = $backoff / 2 + rand(0, $backoff);
+          sleep($sleepTime / 1000);
+          if (2 * $backoff < self::MAX_BACKOFF_DELAY) {
+            $backoff *= 2;
+          }
+        }
+      } while ($tryAgain);
+
+      $success = $failure = $canonicalIds = 0;
+      foreach ($results as $result) {
+        if (!is_null($result->getMessageId())) {
+          $success++;
+
+          if (!is_null($result->getCanonicalRegistrationId())) {
+            $canonicalIds++;
+          }
+        } else {
+          $failure++;
         }
       }
 
-      $tryAgain = count($unsentRegistrationIds) > 0 && $attempt <= $this->retries;
-      if ($tryAgain) {
-        $sleepTime = $backoff / 2 + rand(0, $backoff);
-        sleep($sleepTime / 1000);
-        if (2 * $backoff < self::MAX_BACKOFF_DELAY) {
-          $backoff *= 2;
-        }
+      $result = new MulticastResult($success, $failure, $canonicalIds, $multicastIds[0], $multicastIds);
+      foreach ($registrationIds as $registrationId) {
+        $result->addResult($results[$registrationId]);
       }
-    } while ($tryAgain);
 
-    $success = $failure = $canonicalIds = 0;
-    foreach ($results as $result) {
-      if (!is_null($result->getMessageId())) {
-        $success++;
-
-        if (!is_null($result->getCanonicalRegistrationId())) {
-          $canonicalIds++;
-        }
-      } else {
-        $failure++;
-      }
+      $multicastResults[] = $result;
     }
 
-    $result = new MulticastResult($success, $failure, $canonicalIds, $multicastIds[0], $multicastIds);
-    foreach($registrationIds as $registrationId) {
-      $result->addResult($results[$registrationId]);
-    }
-
-    return $result;
+    return new AggregateResult($multicastResults);
   }
 
   /**
