@@ -37,6 +37,19 @@ $ curl -s http://getcomposer.org/installer | php
 $ composer.phar install
 ```
 
+### Latest
+
+php-gcm follows [SEMVER](http://semver.org/). If you would like to try out the latest, possibly unstable or incorrect
+code, the dependency can be pointed to `dev-master`.
+
+```json
+{
+    "require": {
+        "php-gcm/php-gcm": "dev-master"
+    }
+}
+```
+
 Usage
 -------
 ```php
