@@ -4,14 +4,11 @@ namespace PHP_GCM;
 
 class MessageTest extends \PHPUnit_Framework_TestCase {
 
-  public function testAllConstructorParametersAreOptional() {
+  public function testSetsDefaultsInConstructor() {
     $message = new Message();
 
-    $this->assertEquals('', $message->getCollapseKey());
-    $this->assertTrue(is_array($message->getData()) && empty($message->getData()));
     $this->assertEquals(2419200, $message->getTimeToLive());
     $this->assertEquals(false, $message->getDelayWhileIdle());
-    $this->assertEquals('', $message->getRestrictedPackageName());
     $this->assertFalse($message->getDryRun());
   }
 

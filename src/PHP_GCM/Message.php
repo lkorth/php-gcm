@@ -40,23 +40,12 @@ class Message {
 
   /**
    * Message Constructor
-   *
-   * @param string $collapseKey
-   * @param array $data
-   * @param int $timeToLive
-   * @param bool $delayWhileIdle
-   * @param string $restrictedPackageName
-   * @param bool $dryRun
    */
-  public function __construct($collapseKey = '', array $data = array(), $timeToLive = 2419200,
-    $delayWhileIdle = false, $restrictedPackageName = '', $dryRun = false) {
-      $this->collapseKey = $collapseKey;
-      $this->data = $data;
-      $this->timeToLive = $timeToLive;
-      $this->delayWhileIdle = $delayWhileIdle;
-      $this->restrictedPackageName = $restrictedPackageName;
-      $this->dryRun = $dryRun;
-    }
+  public function __construct() {
+    $this->timeToLive = 2419200;
+    $this->delayWhileIdle = false;
+    $this->dryRun = false;
+  }
 
   /**
    * Sets the collapseKey property.
@@ -218,7 +207,7 @@ class Message {
       $message[self::REGISTRATION_IDS] = $recipients;
     }
 
-    if ($this->collapseKey != '') {
+    if (!empty($this->collapseKey)) {
       $message[self::COLLAPSE_KEY] = $this->collapseKey;
     }
 
@@ -226,7 +215,7 @@ class Message {
     $message[self::TIME_TO_LIVE] = $this->timeToLive;
     $message[self::DRY_RUN] = $this->dryRun;
 
-    if ($this->restrictedPackageName != '') {
+    if (!empty($this->restrictedPackageName)) {
       $message[self::RESTRICTED_PACKAGE_NAME] = $this->restrictedPackageName;
     }
 
