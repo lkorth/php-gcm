@@ -89,6 +89,22 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals($notification, $message->getNotification());
   }
 
+  public function testSetsContentAvailable() {
+    $message = new Message();
+
+    $message->contentAvailable(true);
+
+    $this->assertTrue($message->getContentAvailable());
+  }
+
+  public function testSetsPriority() {
+    $message = new Message();
+
+    $message->priority("high");
+
+    $this->assertEquals("high", $message->getPriority());
+  }
+
   public function testSettersAreChainable() {
     $message = new Message();
     $message->collapseKey('collapse-key')
@@ -97,7 +113,9 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
       ->timeToLive(100)
       ->data(array('key1' => 'value1'))
       ->addData('key2', 'value2')
-      ->restrictedPackageName('com.lukekorth.android');
+      ->restrictedPackageName('com.lukekorth.android')
+      ->contentAvailable(true)
+      ->priority("high");
 
     $this->assertEquals('collapse-key', $message->getCollapseKey());
     $this->assertEquals(true, $message->getDelayWhileIdle());
@@ -105,6 +123,8 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(100, $message->getTimeToLive());
     $this->assertEquals(array('key1' => 'value1', 'key2' => 'value2'), $message->getData());
     $this->assertEquals('com.lukekorth.android', $message->getRestrictedPackageName());
+    $this->assertTrue($message->getContentAvailable());
+    $this->assertEquals("high", $message->getPriority());
   }
 
   public function testBuildAcceptsSingleRecipient() {
@@ -190,6 +210,49 @@ class MessageTest extends \PHPUnit_Framework_TestCase {
     $builtMessage = json_decode($message->build(array('recipient')), true);
 
     $this->assertEquals('package-name', $builtMessage[Message::RESTRICTED_PACKAGE_NAME]);
+  }
+
+  public function testBuildSetsContentAvailableWhenTrue() {
+    $message = new Message();
+    $message->contentAvailable(true);
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertTrue($builtMessage[Message::CONTENT_AVAILABLE]);
+  }
+
+  public function testBuildSetsContentAvailableWhenFalse() {
+    $message = new Message();
+    $message->contentAvailable(false);
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertFalse($builtMessage[Message::CONTENT_AVAILABLE]);
+  }
+
+  public function testBuildDoesNotSetContentAvailableWhenAbsent() {
+    $message = new Message();
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertFalse(array_key_exists(Message::CONTENT_AVAILABLE, $builtMessage));
+  }
+
+  public function testBuildSetsPriority() {
+    $message = new Message();
+    $message->priority("high");
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertEquals("high", $builtMessage[Message::PRIORITY]);
+  }
+
+  public function testBuildDoesNotSetPriorityWhenAbsent() {
+    $message = new Message();
+
+    $builtMessage = json_decode($message->build(array('recipient')), true);
+
+    $this->assertFalse(array_key_exists(Message::PRIORITY, $builtMessage));
   }
 
   public function testBuildDoesNotSetDataWhenDataIsAbsent() {

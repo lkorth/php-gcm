@@ -230,7 +230,7 @@ class Message {
       $message[self::RESTRICTED_PACKAGE_NAME] = $this->restrictedPackageName;
     }
 
-    if ($this->contentAvailable) {
+    if (!is_null($this->contentAvailable)) {
       $message[self::CONTENT_AVAILABLE] = $this->contentAvailable;
     }
 
