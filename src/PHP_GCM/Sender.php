@@ -27,6 +27,7 @@ class Sender {
   const DEVICE_GROUP_NOTIFICATION_KEY = 'notification_key';
 
   private $key;
+  private $endpoint;
   private $retries;
   private $certificatePath;
 
@@ -35,8 +36,9 @@ class Sender {
    *
    * @param string $key API key obtained through the Google API Console.
    */
-  public function __construct($key) {
+  public function __construct($key, $endpoint=self::GCM_ENDPOINT) {
     $this->key = $key;
+    $this->endpoint = $endpoint;
     $this->retries = 3;
     $this->certificatePath = null;
   }
@@ -258,7 +260,7 @@ class Sender {
 
   private function makeRequest(Message $message, array $registrationIds) {
     $ch = $this->getCurlRequest();
-    curl_setopt($ch, CURLOPT_URL, self::GCM_ENDPOINT);
+    curl_setopt($ch, CURLOPT_URL, $this->endpoint);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: key=' . $this->key));
     curl_setopt($ch, CURLOPT_POSTFIELDS, $message->build($registrationIds));
     $response = curl_exec($ch);
