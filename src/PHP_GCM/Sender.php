@@ -136,7 +136,7 @@ class Sender {
 
       $result = new MulticastResult($success, $failure, $canonicalIds, $multicastIds[0], $multicastIds);
       foreach ($registrationIds as $registrationId) {
-        $result->addResult($results[$registrationId]);
+        $result->addResult($registrationId, $results[$registrationId]);
       }
 
       $multicastResults[] = $result;
@@ -288,6 +288,7 @@ class Sender {
     if(isset($response[self::RESULTS])){
       $individualResults = $response[self::RESULTS];
 
+      $i = 0;
       foreach($individualResults as $singleResult) {
         $messageId = isset($singleResult[self::MESSAGE_ID]) ? $singleResult[self::MESSAGE_ID] : null;
         $canonicalRegId = isset($singleResult[self::REGISTRATION_ID]) ? $singleResult[self::REGISTRATION_ID] : null;
@@ -298,7 +299,8 @@ class Sender {
         $result->setCanonicalRegistrationId($canonicalRegId);
         $result->setErrorCode($error);
 
-        $multicastResult->addResult($result);
+        $multicastResult->addResult($devices[$i], $result);
+        ++$i;
       }
     }
 
