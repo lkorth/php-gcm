@@ -330,7 +330,7 @@ class Sender {
     $newUnsentRegIds = array();
     for ($i = 0; $i < count($unsentRegIds); $i++) {
       $regId = $unsentRegIds[$i];
-      $result = $results[$i];
+      $result = $results[$regId];
       $allResults[$regId] = $result;
       $error = $result->getErrorCode();
 
