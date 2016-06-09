@@ -34,11 +34,11 @@ class MulticastResult {
   /**
    * Add a result to the result property
    *
-   * @param string $device
+   * @param string $registrationId
    * @param Result $result
    */
-  public function addResult($device, Result $result) {
-    $this->results[$device] = $result;
+  public function addResult($registrationId, Result $result) {
+    $this->results[$registrationId] = $result;
   }
 
   /**
@@ -90,7 +90,7 @@ class MulticastResult {
   /**
    * Gets the results of each individual message
    *
-   * @return array Mapping of deviceId -> Result
+   * @return array Mapping of registrationId -> Result
    */
   public function getResults() {
     return $this->results;

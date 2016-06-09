@@ -301,7 +301,7 @@ class Sender {
         $result->setCanonicalRegistrationId($canonicalRegId);
         $result->setErrorCode($error);
 
-        $multicastResult->addResult($devices[$i], $result);
+        $multicastResult->addResult($registrationIds[$i], $result);
         ++$i;
       }
     }
