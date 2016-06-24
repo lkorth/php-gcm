@@ -4,7 +4,7 @@ namespace PHP_GCM;
 
 class Sender {
 
-  const GCM_ENDPOINT = 'https://gcm-http.googleapis.com/gcm/send';
+  const SEND_ENDPOINT = 'https://fcm.googleapis.com/fcm/send';
   const BACKOFF_INITIAL_DELAY = 1000;
   const MAX_BACKOFF_DELAY = 1024000;
   const SUCCESS = 'success';
@@ -258,7 +258,7 @@ class Sender {
 
   private function makeRequest(Message $message, array $registrationIds) {
     $ch = $this->getCurlRequest();
-    curl_setopt($ch, CURLOPT_URL, self::GCM_ENDPOINT);
+    curl_setopt($ch, CURLOPT_URL, self::SEND_ENDPOINT);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: key=' . $this->key));
     curl_setopt($ch, CURLOPT_POSTFIELDS, $message->build($registrationIds));
     $response = curl_exec($ch);
