@@ -259,7 +259,15 @@ class Sender {
   private function makeRequest(Message $message, array $registrationIds) {
     $ch = $this->getCurlRequest();
     curl_setopt($ch, CURLOPT_URL, self::SEND_ENDPOINT);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: key=' . $this->key));
+    $headers = array('Content-Type: application/json', 'Authorization: key=' . $this->key);
+    if(!empty($message->getSalt()) && !empty($message->getPublicKey())) {
+      $headers = array_merge($headers, array(
+        'Encryption: salt=' . $message->getSalt(),
+        'Crypto-Key: dh=' . $message->getPublicKey(),
+        'Content-Encoding: aesgcm'
+      ));
+    }
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $message->build($registrationIds));
     $response = curl_exec($ch);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
