@@ -260,7 +260,7 @@ class Sender {
     $ch = $this->getCurlRequest();
     curl_setopt($ch, CURLOPT_URL, self::SEND_ENDPOINT);
     $headers = array('Content-Type: application/json', 'Authorization: key=' . $this->key);
-    if(!empty($message->getSalt()) && !empty($message->getPublicKey())) {
+    if(!is_null($message->getSalt()) && !is_null($message->getPublicKey())) {
       $headers = array_merge($headers, array(
         'Encryption: salt=' . $message->getSalt(),
         'Crypto-Key: dh=' . $message->getPublicKey(),
