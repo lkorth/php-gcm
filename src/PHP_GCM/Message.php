@@ -27,6 +27,7 @@ class Message {
   const NOTIFICATION_TITLE_LOC_ARGS = 'title_loc_args';
   const CONTENT_AVAILABLE = 'content_available';
   const PRIORITY = 'priority';
+  const RAW_DATA = 'raw_data';
 
   private $collapseKey;
   private $delayWhileIdle;
@@ -37,6 +38,9 @@ class Message {
   private $notification;
   private $contentAvailable;
   private $priority;
+  private $rawData;
+  private $publicKey;
+  private $salt;
 
   /**
    * Message Constructor
@@ -196,6 +200,51 @@ class Message {
     return $this->priority;
   }
 
+  /**
+   * Sets the rawData property
+   *
+   * @param $rawData
+   * @return $this
+   */
+  public function rawData($rawData) {
+    $this->rawData = $rawData;
+    return $this;
+  }
+
+  public function getRawData() {
+    return $this->rawData;
+  }
+
+  /**
+   * Sets the publicKey property
+   *
+   * @param $publicKey
+   * @return $this
+   */
+  public function publicKey($publicKey) {
+    $this->publicKey = $publicKey;
+    return $this;
+  }
+
+  public function getPublicKey() {
+    return $this->publicKey;
+  }
+
+  /**
+   * Sets the salt property
+   *
+   * @param $salt
+   * @return $this
+   */
+  public function salt($salt) {
+    $this->salt = $salt;
+    return $this;
+  }
+
+  public function getSalt() {
+    return $this->salt;
+  }
+
   public function build($recipients) {
     $message = array();
 
@@ -249,6 +298,10 @@ class Message {
       $message[self::NOTIFICATION][self::NOTIFICATION_TITLE] = $this->notification->getTitle();
       $message[self::NOTIFICATION][self::NOTIFICATION_TITLE_LOC_ARGS] = $this->notification->getTitleLocArgs();
       $message[self::NOTIFICATION][self::NOTIFICATION_TITLE_LOC_KEY] = $this->notification->getTitleLocKey();
+    }
+
+    if (!empty($this->rawData)) {
+        $message[self::RAW_DATA] = $this->rawData;
     }
 
     return json_encode($message);
