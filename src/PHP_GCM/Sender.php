@@ -3,8 +3,7 @@
 namespace PHP_GCM;
 
 class Sender {
-
-  const GCM_ENDPOINT = 'https://gcm-http.googleapis.com/gcm/send';
+  const SEND_ENDPOINT = 'https://fcm.googleapis.com/fcm/send';
   const BACKOFF_INITIAL_DELAY = 1000;
   const MAX_BACKOFF_DELAY = 1024000;
   const SUCCESS = 'success';
@@ -36,7 +35,7 @@ class Sender {
    *
    * @param string $key API key obtained through the Google API Console.
    */
-  public function __construct($key, $endpoint=self::GCM_ENDPOINT) {
+  public function __construct($key, $endpoint=self::SEND_ENDPOINT) {
     $this->key = $key;
     $this->endpoint = $endpoint;
     $this->retries = 3;
