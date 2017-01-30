@@ -322,8 +322,8 @@ class Sender {
     $results = $multicastResult->getResults();
     if(count($results) != count($unsentRegIds)) {
       // should never happen, unless there is a flaw in the algorithm
-      throw new \RuntimeException('Internal error: sizes do not match. currentResults: ' . $results .
-        '; unsentRegIds: ' . $unsentRegIds);
+      throw new \RuntimeException('Internal error: sizes do not match. currentResults: ' . implode(', ', $results) .
+        '; unsentRegIds: ' . implode(', ', $unsentRegIds);
     }
 
     $newUnsentRegIds = array();
