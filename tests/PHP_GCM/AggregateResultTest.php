@@ -53,10 +53,10 @@ class AggregateResultTest extends \PHPUnit_Framework_TestCase {
 
   public function testGetResults() {
     $result = new MulticastResult(1, 2, 1, 'multicast-id', array());
-    $result->addResult(new Result());
+    $result->addResult('123', new Result());
 
     $this->assertTrue(is_array($result->getResults()));
-    $this->assertEquals(array(new Result()), $result->getResults());
+    $this->assertEquals(array('123' => new Result()), $result->getResults());
   }
 
   public function testGetRetryMulticastIds() {

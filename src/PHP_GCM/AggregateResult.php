@@ -72,7 +72,7 @@ class AggregateResult {
   /**
    * Gets the results of each individual message
    *
-   * @return array
+   * @return Result[]
    */
   public function getResults() {
     return $this->results;
@@ -81,7 +81,7 @@ class AggregateResult {
   /**
    * Gets additional ids if more than one multicast message was sent.
    *
-   * @return array
+   * @return MulticastResult[]
    */
   public function getMulticastResults() {
     return $this->multicastResults;

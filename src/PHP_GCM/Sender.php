@@ -3,7 +3,6 @@
 namespace PHP_GCM;
 
 class Sender {
-
   const SEND_ENDPOINT = 'https://fcm.googleapis.com/fcm/send';
   const BACKOFF_INITIAL_DELAY = 1000;
   const MAX_BACKOFF_DELAY = 1024000;
@@ -27,6 +26,7 @@ class Sender {
   const DEVICE_GROUP_NOTIFICATION_KEY = 'notification_key';
 
   private $key;
+  private $endpoint;
   private $retries;
   private $certificatePath;
 
@@ -35,8 +35,9 @@ class Sender {
    *
    * @param string $key API key obtained through the Google API Console.
    */
-  public function __construct($key) {
+  public function __construct($key, $endpoint=self::SEND_ENDPOINT) {
     $this->key = $key;
+    $this->endpoint = $endpoint;
     $this->retries = 3;
     $this->certificatePath = null;
   }
@@ -136,7 +137,7 @@ class Sender {
 
       $result = new MulticastResult($success, $failure, $canonicalIds, $multicastIds[0], $multicastIds);
       foreach ($registrationIds as $registrationId) {
-        $result->addResult($results[$registrationId]);
+        $result->addResult($registrationId, $results[$registrationId]);
       }
 
       $multicastResults[] = $result;
@@ -258,7 +259,7 @@ class Sender {
 
   private function makeRequest(Message $message, array $registrationIds) {
     $ch = $this->getCurlRequest();
-    curl_setopt($ch, CURLOPT_URL, self::SEND_ENDPOINT);
+    curl_setopt($ch, CURLOPT_URL, $this->endpoint);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: key=' . $this->key));
     curl_setopt($ch, CURLOPT_POSTFIELDS, $message->build($registrationIds));
     $response = curl_exec($ch);
@@ -288,6 +289,7 @@ class Sender {
     if(isset($response[self::RESULTS])){
       $individualResults = $response[self::RESULTS];
 
+      $i = 0;
       foreach($individualResults as $singleResult) {
         $messageId = isset($singleResult[self::MESSAGE_ID]) ? $singleResult[self::MESSAGE_ID] : null;
         $canonicalRegId = isset($singleResult[self::REGISTRATION_ID]) ? $singleResult[self::REGISTRATION_ID] : null;
@@ -298,7 +300,8 @@ class Sender {
         $result->setCanonicalRegistrationId($canonicalRegId);
         $result->setErrorCode($error);
 
-        $multicastResult->addResult($result);
+        $multicastResult->addResult($registrationIds[$i], $result);
+        ++$i;
       }
     }
 
@@ -318,15 +321,18 @@ class Sender {
   private function updateStatus($unsentRegIds, &$allResults, MulticastResult $multicastResult) {
     $results = $multicastResult->getResults();
     if(count($results) != count($unsentRegIds)) {
+      $currentResults = array_map(function($item){
+        return var_export($item, true);
+      }, $results);
       // should never happen, unless there is a flaw in the algorithm
-      throw new \RuntimeException('Internal error: sizes do not match. currentResults: ' . $results .
-        '; unsentRegIds: ' . $unsentRegIds);
+      throw new \RuntimeException('Internal error: sizes do not match. currentResults: ' . implode(', ', $currentResults) .
+        '; unsentRegIds: ' . implode(', ', $unsentRegIds));
     }
 
     $newUnsentRegIds = array();
     for ($i = 0; $i < count($unsentRegIds); $i++) {
       $regId = $unsentRegIds[$i];
-      $result = $results[$i];
+      $result = $results[$regId];
       $allResults[$regId] = $result;
       $error = $result->getErrorCode();
 
