@@ -321,8 +321,11 @@ class Sender {
   private function updateStatus($unsentRegIds, &$allResults, MulticastResult $multicastResult) {
     $results = $multicastResult->getResults();
     if(count($results) != count($unsentRegIds)) {
+      $currentResults = array_map(function($item){
+        return var_export($item, true);
+      }, $results);
       // should never happen, unless there is a flaw in the algorithm
-      throw new \RuntimeException('Internal error: sizes do not match. currentResults: ' . implode(', ', $results) .
+      throw new \RuntimeException('Internal error: sizes do not match. currentResults: ' . implode(', ', $currentResults) .
         '; unsentRegIds: ' . implode(', ', $unsentRegIds));
     }
 
